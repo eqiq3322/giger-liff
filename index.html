@@ -1,267 +1,391 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>GIGER LIFF</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 16px; }
-    h2 { margin-top: 0; }
-    label { display:block; margin: 8px 0; }
-    input, textarea { width: 100%; box-sizing: border-box; padding: 8px; }
-    button { padding: 8px 16px; margin-top: 8px; }
-    #error { color: #c00; margin-bottom: 8px; }
-    .card { border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin-top: 12px; }
+    :root { --bd:#ddd; --muted:#666; }
+    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC",sans-serif;padding:16px;line-height:1.5}
+    h2{margin:0 0 8px} h3{margin:8px 0}
+    label{display:block;margin:8px 0}
+    input,select,textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--bd);border-radius:10px}
+    button{padding:10px 14px;border-radius:10px;border:1px solid #999;background:#fff;cursor:pointer}
+    button[disabled]{opacity:.5;cursor:not-allowed}
+    small{color:var(--muted)}
+    .card{border:1px solid var(--bd);border-radius:12px;padding:12px;margin-top:12px}
+    .grid{display:grid;gap:8px}
+    .g2{grid-template-columns:1fr 1fr}
+    #error{color:#c00;margin:8px 0;display:none}
   </style>
 </head>
 <body>
-  <div id="loading">載入中...</div>
-  <div id="error" style="display:none;"></div>
+  <div id="loading">載入中…</div>
+  <div id="error"></div>
+
+  <!-- A：條款同意頁 -->
+  <section id="roleAConsent" style="display:none">
+    <h2>使用條款與隱私告知</h2>
+    <div class="card" style="max-height:42vh; overflow:auto">
+      <h3 style="margin:0 0 8px">請閱讀以下內容</h3>
+      <ul style="margin-left:18px">
+        <li>《郵政法》：嚴禁托運任何具通信性質之物品（書信、明信片、文件、合約、發票、單據…）。違規由 A 自負，平台得停權。</li>
+        <li>個資與隱私（符合《個資法》）<br>
+          蒐集：姓名、電話、位置。<br>
+          目的：媒合、送貨、收款。<br>
+          分享對象：A 可見 B 資訊；C 可見 B 位置。<br>
+          保存期限：達成目的後刪除或去識別化。
+        </li>
+        <li>禁止站內營業行為；平台不經手運費。建議現金結清；若採轉帳，B 自行承擔確認風險。</li>
+        <li>食安與法規遵循：不得託運違禁品、危險品或法規限制物品。</li>
+        <li>夜間安全規則：建議交/到貨點選擇「24 小時超商門口」或「有警衛大樓門口」。B 得依自身安全判斷單方取消且不列入爽約。</li>
+        <li>大眾運輸誤點風險：B 可能搭乘大眾運輸，時間恐受影響。</li>
+        <li>責任限制：除非因平台重大過失，平台不負賠償責任。</li>
+        <li>C 收貨失敗時，由 B 主動聯繫 A 協議後續處理。</li>
+        <li>Linebot 會廣播媒合所需之訂單資訊與收款方式（A/C）。</li>
+      </ul>
+    </div>
+    <div class="card">
+      <label><input type="checkbox" id="consent_chk1"> 我了解並遵守《郵政法》限制。</label>
+      <label><input type="checkbox" id="consent_chk2"> 我同意個資蒐集/利用與分享之說明。</label>
+      <label><input type="checkbox" id="consent_chk3"> 我了解平台不經手運費與責任限制。</label>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="btnConsentAgree" disabled>同意並開始填寫</button>
+        <button id="btnConsentCancel" style="border-color:#c00;color:#c00">不同意</button>
+      </div>
+      <small>請勾選以上三項以啟用「同意」按鈕。</small>
+    </div>
+  </section>
 
   <!-- A：建立訂單 -->
-  <div id="roleA" style="display:none;">
+  <section id="roleA" style="display:none">
     <h2>A 建立訂單</h2>
-    <p>您好，<span id="aName"></span></p>
+    <p>您好，<b id="aName"></b></p>
+
     <form id="formA" class="card">
-      <label>
-        訂單標題：
-        <input name="title" required>
+      <h3>訂單內容</h3>
+      <label>訂單標題
+        <input name="title" placeholder="例如：今晚 20:30 送到小港站 1 號出口" required>
       </label>
-      <label>
-        起點站：
-        <input name="fromStation" required>
+      <label>貨物描述（特大/重/長請註明）
+        <textarea name="itemDesc" rows="3" placeholder="例如：鞋盒一個、約 2kg，長 40cm" required></textarea>
       </label>
-      <label>
-        終點站：
-        <input name="toStation" required>
-      </label>
-      <label>
-        預計抵達時間：
+
+      <!-- 交貨點 -->
+      <fieldset style="border:none;padding:0;margin:8px 0">
+        <legend><b>交貨點（起點）</b></legend>
+        <div class="grid g2">
+          <label>系統<select id="fromSystem" required></select></label>
+          <label>路線<select id="fromLine"></select></label>
+          <label>站點<select id="fromStation"></select></label>
+          <label id="fromOtherWrap" style="display:none">其他地點（自填）
+            <input id="fromOther" placeholder="例：XX 路與 OO 路口、某社區大門">
+          </label>
+        </div>
+      </fieldset>
+
+      <!-- 到貨點 -->
+      <fieldset style="border:none;padding:0;margin:8px 0">
+        <legend><b>到貨點（終點）</b></legend>
+        <div class="grid g2">
+          <label>系統<select id="toSystem" required></select></label>
+          <label>路線<select id="toLine"></select></label>
+          <label>站點<select id="toStation"></select></label>
+          <label id="toOtherWrap" style="display:none">其他地點（自填）
+            <input id="toOther" placeholder="例：XX 路與 OO 路口、某社區大門">
+          </label>
+        </div>
+        <small>夜間建議選「超商門口 / 有警衛大樓門口」。B 如判斷不安全有權取消且不記爽約。</small>
+      </fieldset>
+
+      <!-- 收貨人 -->
+      <div class="grid g2">
+        <label>收貨人稱謂
+          <input name="receiverTitle" placeholder="例：王小姐 / 張先生" required>
+        </label>
+        <label>收貨人電話
+          <input name="receiverPhone" inputmode="tel" pattern="[0-9+\-() ]{6,}" placeholder="例：0912-345-678" required>
+        </label>
+      </div>
+
+      <!-- 運費 -->
+      <div class="card" style="background:#fafafa">
+        <h4 style="margin:0 0 6px">運費與付款</h4>
+        <label><input type="radio" name="payer" value="A" checked> 運費由 A 付款</label>
+        <label><input type="radio" name="payer" value="C"> 運費由 C 付款</label>
+        <div class="grid g2" style="margin-top:8px">
+          <label>基礎運費（固定）
+            <input id="baseFare" value="100" readonly>
+          </label>
+          <label>小費（可選，整數）
+            <input id="tip" type="number" min="0" step="10" placeholder="0">
+          </label>
+        </div>
+        <div style="margin-top:6px">預估應付：<b id="farePreview">100</b> 元</div>
+        <small>平台不經手款項，建議現金結清；若採轉帳，B 須自行承擔確認風險。</small>
+      </div>
+
+      <label>預計抵達時間
         <input name="arriveTime" placeholder="2025-11-09 18:00" required>
       </label>
-      <label>
-        備註：
-        <textarea name="note" rows="3"></textarea>
+
+      <label>備註
+        <textarea name="note" rows="3" placeholder="例如：易碎、請直立；到站請先致電收貨人"></textarea>
       </label>
+
       <button type="submit">送出訂單</button>
     </form>
-    <div id="aResult" class="card" style="display:none;">
-      <p>訂單已建立，編號：<span id="orderId"></span></p>
+
+    <div id="aResult" class="card" style="display:none">
+      <p>訂單編號：<span id="orderId"></span></p>
       <p>給 C 的連結：</p>
       <input id="shareUrl" readonly>
       <button id="copyBtn">複製連結</button>
     </div>
-  </div>
+  </section>
 
   <!-- B：註冊 / 路線 -->
-  <div id="roleB" style="display:none;">
+  <section id="roleB" style="display:none">
     <h2>B 註冊 & 路線資料</h2>
-    <p>您好，<span id="bName"></span></p>
+    <p>您好，<b id="bName"></b></p>
     <form id="formB" class="card">
-      <label>
-        真實姓名：
-        <input name="name" required>
-      </label>
-      <label>
-        銀行帳號：
-        <input name="bankAccount" required>
-      </label>
-      <label>
-        通勤起始時間：
-        <input name="commuteStartTime" placeholder="08:00" required>
-      </label>
-      <label>
-        通勤結束時間：
-        <input name="commuteEndTime" placeholder="18:00" required>
-      </label>
-      <label>
-        路線站點（用逗號分隔）：
-        <input name="commuteStations" placeholder="R16,R15,R14,O5" required>
-      </label>
+      <label>真實姓名：<input name="name" required></label>
+      <label>銀行帳號：<input name="bankAccount" required></label>
+      <label>通勤起始時間：<input name="commuteStartTime" placeholder="08:00" required></label>
+      <label>通勤結束時間：<input name="commuteEndTime" placeholder="18:00" required></label>
+      <label>路線站點（用逗號分隔）：<input name="commuteStations" placeholder="R16,R15,R14,O5" required></label>
       <button type="submit">送出</button>
     </form>
-    <div id="bResult" class="card" style="display:none;">
-      <p>註冊成功！</p>
-    </div>
-  </div>
+    <div id="bResult" class="card" style="display:none">註冊成功！</div>
+  </section>
 
   <!-- C：從 A 的連結進來，看訂單 -->
-  <div id="roleC" style="display:none;">
+  <section id="roleC" style="display:none">
     <h2>訂單資訊</h2>
-    <p>您好，<span id="cName"></span></p>
-    <div id="cOrder" class="card">
-      <p>載入中...</p>
-    </div>
-  </div>
+    <p>您好，<b id="cName"></b></p>
+    <div id="cOrder" class="card">載入中...</div>
+  </section>
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script>
-    // === 這兩個要換成你自己的 ===
+    // === 換成你的實際值 ===
     const LIFF_ID = "2008451062-KyyOrgXx";
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbylIfdM47Hh8CzdDS_bpv-vDppo1OUiKH9HzkeQa9YjDkNgyuZjTQipdNg9CLd_DOKETg/exec";
-    // ===========================
+    // =====================
 
-    let currentProfile = null;
-    let role = null;
-    let orderId = null;
+    const $ = (id)=>document.getElementById(id);
+    function showError(msg){ const e=$('error'); e.textContent=msg; e.style.display='block'; }
 
-    function showError(msg) {
-      const el = document.getElementById('error');
-      el.textContent = msg;
-      el.style.display = 'block';
+    // --------- A 條款同意儲存 ----------
+    const CONSENT_KEY = 'giger_consent_v1';
+    function hasConsent(){ try{ const raw=localStorage.getItem(CONSENT_KEY); return raw && JSON.parse(raw).agreed; }catch{ return false; } }
+    function setConsent(){ localStorage.setItem(CONSENT_KEY, JSON.stringify({agreed:true, ts:Date.now()})); }
+    function show(id, on=true){ const el=$(id); if(el) el.style.display=on?'block':'none'; }
+
+    // --------- 站點資料（節選，可擴充） ----------
+    const STOP_DATA = {
+      "台北捷運": {
+        "淡水信義線 (R)": ["象山","台北101/世貿","信義安和","大安","大安森林公園","東門","中正紀念堂","台大醫院","台北車站","中山","雙連","民權西路","圓山","劍潭","士林","芝山","明德","石牌","唭哩岸","奇岩","北投","復興崗","忠義","關渡","竹圍","紅樹林","淡水"],
+        "松山新店線 (G)": ["新店","新店區公所","七張","小碧潭","大坪林","景美","萬隆","公館","台電大樓","古亭","中正紀念堂","小南門","西門","北門","中山","松江南京","南京復興","台北小巨蛋","南京三民","松山"],
+        "中和新蘆線 (O)": ["南勢角","景安","永安市場","頂溪","古亭","東門","忠孝新生","松江南京","行天宮","中山國小","民權西路","大橋頭","台北橋","菜寮","三重","先嗇宮","頭前庄","新莊","輔大","丹鳳","迴龍","三重國小","三和國中","徐匯中學","三民高中","蘆洲"],
+        "板南線 (BL)": ["頂埔","永寧","土城","海山","亞東醫院","府中","板橋","新埔","江子翠","龍山寺","西門","台北車站","善導寺","忠孝新生","忠孝復興","忠孝敦化","國父紀念館","市政府","永春","後山埤","昆陽","南港","南港展覽館"],
+        "文湖線 (BR)": ["動物園","木柵","萬芳社區","萬芳醫院","辛亥","麟光","六張犁","科技大樓","大安","忠孝復興","南京復興","中山國中","松山機場","大直","劍南路","西湖","港墘","文德","內湖","大湖公園","葫洲","東湖","南港軟體園區","南港展覽館"],
+        "環狀線 (Y)": ["新北產業園區","幸福","新北輔大","頭前庄","中原","橋和","中和","景平","景安","中和高中","秀朗橋","景平?","萬大(預留)"]
+      },
+      "高雄捷運": {
+        "紅線": ["小港","高雄國際機場","草衙","前鎮高中","凱旋","獅甲","三多商圈","中央公園","美麗島","高雄車站","後驛","凹子底","巨蛋","生態園區","左營","世運"],
+        "橘線": ["西子灣","鹽埕埔","市議會","美麗島","信義國小","文化中心","五塊厝","技擊館","衛武營","鳳山西","鳳山","大東","鳳山國中","大寮"]
+      },
+      "高鐵": { "全線": ["南港","台北","板橋","桃園","新竹","苗栗","台中","彰化","雲林","嘉義","台南","左營"] },
+      "台鐵": { "主要車站": ["基隆","八堵","汐止","松山","台北","萬華","板橋","桃園","中壢","新竹","苗栗","台中","彰化","員林","斗六","嘉義","新營","台南","岡山","新左營","高雄","鳳山","屏東"] },
+      "其他": {}
+    };
+
+    function initStationSelectors(prefix){
+      const sysSel = $(prefix+'System');
+      const lineSel = $(prefix+'Line');
+      const staSel = $(prefix+'Station');
+      const otherWrap = $(prefix+'OtherWrap');
+
+      sysSel.innerHTML = '';
+      Object.keys(STOP_DATA).forEach(sys=>{
+        const o=document.createElement('option'); o.value=sys; o.textContent=sys; sysSel.appendChild(o);
+      });
+
+      function refreshLines(){
+        const sys=sysSel.value;
+        lineSel.innerHTML=''; staSel.innerHTML='';
+        if(sys==='其他'){ lineSel.style.display='none'; staSel.style.display='none'; otherWrap.style.display='block'; return; }
+        otherWrap.style.display='none'; lineSel.style.display='block'; staSel.style.display='block';
+        Object.keys(STOP_DATA[sys]).forEach(line=>{
+          const o=document.createElement('option'); o.value=line; o.textContent=line; lineSel.appendChild(o);
+        });
+        refreshStations();
+      }
+      function refreshStations(){
+        const sys=sysSel.value, line=lineSel.value;
+        staSel.innerHTML='';
+        (STOP_DATA[sys] && STOP_DATA[sys][line] || []).forEach(st=>{
+          const o=document.createElement('option'); o.value=st; o.textContent=st; staSel.appendChild(o);
+        });
+      }
+      sysSel.addEventListener('change', refreshLines);
+      lineSel.addEventListener('change', refreshStations);
+      refreshLines();
     }
 
-    async function main() {
-      const params = new URLSearchParams(location.search);
-      role = params.get('role') || 'A';
-      orderId = params.get('orderId') || null;
+    function getPlaceSummary(prefix){
+      const sys=$(prefix+'System').value;
+      if(sys==='其他'){ const other=$(prefix+'Other').value.trim(); return {system:sys,line:'',station:'',text:other}; }
+      const line=$(prefix+'Line').value, station=$(prefix+'Station').value;
+      return {system:sys,line,station,text:`${sys} / ${line} / ${station}`};
+    }
+
+    function setupFarePreview(){
+      const base=$('baseFare'), tip=$('tip'), out=$('farePreview');
+      function calc(){ const t=(parseInt(base.value,10)||0)+(parseInt(tip.value,10)||0); out.textContent=t; }
+      tip.addEventListener('input', calc); calc();
+    }
+
+    // --------- LIFF 初始化與三角色入口 ----------
+    let currentProfile=null, role=null, orderId=null;
+
+    async function main(){
+      const params=new URLSearchParams(location.search);
+      role=params.get('role')||'A';
+      orderId=params.get('orderId')||null;
+      if(params.get('resetConsent')==='1') localStorage.removeItem(CONSENT_KEY);
 
       await liff.init({ liffId: LIFF_ID });
-
-      if (!liff.isLoggedIn()) {
-        liff.login();
-        return;
-      }
-
+      if(!liff.isLoggedIn()){ liff.login(); return; }
       currentProfile = await liff.getProfile();
 
-      document.getElementById('loading').style.display = 'none';
+      $('loading').style.display='none';
 
-      if (role === 'A') {
-        initRoleA();
-      } else if (role === 'B') {
-        initRoleB();
-      } else if (role === 'C') {
-        initRoleC();
-      }
+      if(role==='A'){ initRoleA(); }
+      else if(role==='B'){ initRoleB(); }
+      else if(role==='C'){ initRoleC(); }
     }
 
-    function initRoleA() {
-      document.getElementById('roleA').style.display = 'block';
-      document.getElementById('aName').textContent = currentProfile.displayName;
+    function initRoleA(){
+      // 先進入同意頁
+      const goForm = ()=>{
+        show('roleAConsent', false);
+        show('roleA', true);
+        $('aName').textContent = currentProfile.displayName;
+        initStationSelectors('from'); initStationSelectors('to'); setupFarePreview();
 
-      const form = document.getElementById('formA');
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
-        const payload = {
-          action: 'registerOrderFromA',
-          oaUserId: currentProfile.userId,
-          name: currentProfile.displayName,
-          title: formData.get('title'),
-          fromStation: formData.get('fromStation'),
-          toStation: formData.get('toStation'),
-          arriveTime: formData.get('arriveTime'),
-          note: formData.get('note')
-        };
-        try {
-          const res = await fetch(BACKEND_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          const json = await res.json();
-          if (json.status !== 'success') throw new Error(json.message || 'failed');
-          document.getElementById('orderId').textContent = json.orderId;
+        const form=$('formA');
+        form.addEventListener('submit', async (e)=>{
+          e.preventDefault();
+          const from=getPlaceSummary('from'), to=getPlaceSummary('to');
+          if(from.system==='其他' && !from.text){ alert('請輸入交貨點「其他地點」'); return; }
+          if(to.system==='其他' && !to.text){ alert('請輸入到貨點「其他地點」'); return; }
 
-          const shareUrl = 'https://liff.line.me/' + LIFF_ID +
-            '?role=C&orderId=' + encodeURIComponent(json.orderId);
-          const shareInput = document.getElementById('shareUrl');
-          shareInput.value = shareUrl;
+          const fd=new FormData(form);
+          const payer=(fd.get('payer')||'A');
+          const baseFare=100, tip=parseInt(($('tip').value||'0'),10)||0;
 
-          document.getElementById('aResult').style.display = 'block';
-        } catch (err) {
-          showError('送出失敗：' + err.message);
-        }
-      });
+          const payload={
+            action:'registerOrderFromA',
+            oaUserId: currentProfile.userId,
+            name: currentProfile.displayName,
+            title: fd.get('title'),
+            arriveTime: fd.get('arriveTime'),
+            note: fd.get('note'),
+            itemDesc: fd.get('itemDesc'),
+            fromStation: from.text,
+            toStation: to.text,
+            fromSystem: from.system, fromLine: from.line, fromStationName: from.station, fromOther:(from.system==='其他'?from.text:''),
+            toSystem: to.system, toLine: to.line, toStationName: to.station, toOther:(to.system==='其他'?to.text:''),
+            receiverTitle: fd.get('receiverTitle'),
+            receiverPhone: fd.get('receiverPhone'),
+            farePayer: payer,
+            baseFare, tip, totalFare: baseFare+tip,
+            agreed: true
+          };
 
-      document.getElementById('copyBtn').addEventListener('click', async () => {
-        try {
-          await navigator.clipboard.writeText(document.getElementById('shareUrl').value);
-          alert('已複製連結');
-        } catch (err) {
-          alert('複製失敗，請手動長按複製');
-        }
-      });
-    }
+          try{
+            const res=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+            const json=await res.json();
+            if(json.status!=='success') throw new Error(json.message||'提交失敗');
 
-    function initRoleB() {
-      document.getElementById('roleB').style.display = 'block';
-      document.getElementById('bName').textContent = currentProfile.displayName;
-
-      const form = document.getElementById('formB');
-      form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const formData = new FormData(form);
-        const payload = {
-          action: 'registerBUser',
-          oaUserId: currentProfile.userId,
-          name: formData.get('name'),
-          bankAccount: formData.get('bankAccount'),
-          driveFileId: '', // 之後再補上傳存摺功能
-          commuteStartTime: formData.get('commuteStartTime'),
-          commuteEndTime: formData.get('commuteEndTime'),
-          commuteStations: formData.get('commuteStations')
-        };
-        try {
-          const res = await fetch(BACKEND_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          const json = await res.json();
-          if (json.status !== 'success') throw new Error(json.message || 'failed');
-          document.getElementById('bResult').style.display = 'block';
-        } catch (err) {
-          showError('送出失敗：' + err.message);
-        }
-      });
-    }
-
-    async function initRoleC() {
-      document.getElementById('roleC').style.display = 'block';
-      document.getElementById('cName').textContent = currentProfile.displayName;
-
-      if (!orderId) {
-        showError('缺少 orderId');
-        return;
-      }
-
-      try {
-        const payload = {
-          action: 'cEnterFromShareLink',
-          oaUserId: currentProfile.userId,
-          name: currentProfile.displayName,
-          orderId: orderId
-        };
-        const res = await fetch(BACKEND_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+            $('orderId').textContent=json.orderId;
+            const shareUrl=`https://liff.line.me/${LIFF_ID}?role=C&orderId=${encodeURIComponent(json.orderId)}`;
+            $('shareUrl').value=shareUrl;
+            $('aResult').style.display='block';
+          }catch(err){ showError('送出失敗：'+err.message); }
         });
-        const json = await res.json();
-        if (json.status !== 'success') throw new Error(json.message || 'failed');
 
-        const o = json.order;
-        const div = document.getElementById('cOrder');
-        div.innerHTML = `
+        $('copyBtn').addEventListener('click', async ()=>{
+          try{ await navigator.clipboard.writeText($('shareUrl').value); alert('已複製連結'); }
+          catch{ alert('複製失敗，請長按手動複製'); }
+        });
+      };
+
+      const goConsent = ()=>{
+        show('roleA', false); show('roleAConsent', true);
+        const c1=$('consent_chk1'), c2=$('consent_chk2'), c3=$('consent_chk3'), btn=$('btnConsentAgree');
+        function refresh(){ btn.disabled = !(c1.checked && c2.checked && c3.checked); }
+        [c1,c2,c3].forEach(x=>x.addEventListener('change', refresh)); refresh();
+
+        btn.addEventListener('click', ()=>{ setConsent(); goForm(); });
+        $('btnConsentCancel').addEventListener('click', ()=>{
+          if(liff?.closeWindow) liff.closeWindow(); else location.href='https://line.me/R/';
+        });
+      };
+
+      if(hasConsent()) goForm(); else goConsent();
+    }
+
+    function initRoleB(){
+      show('roleB', true);
+      $('bName').textContent=currentProfile.displayName;
+      const form=$('formB');
+      form.addEventListener('submit', async (e)=>{
+        e.preventDefault();
+        const fd=new FormData(form);
+        const payload={
+          action:'registerBUser',
+          oaUserId: currentProfile.userId,
+          name: fd.get('name'),
+          bankAccount: fd.get('bankAccount'),
+          driveFileId: '',
+          commuteStartTime: fd.get('commuteStartTime'),
+          commuteEndTime: fd.get('commuteEndTime'),
+          commuteStations: fd.get('commuteStations')
+        };
+        try{
+          const res=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+          const json=await res.json();
+          if(json.status!=='success') throw new Error(json.message||'failed');
+          $('bResult').style.display='block';
+        }catch(err){ showError('送出失敗：'+err.message); }
+      });
+    }
+
+    async function initRoleC(){
+      show('roleC', true);
+      $('cName').textContent=currentProfile.displayName;
+      if(!orderId){ showError('缺少 orderId'); return; }
+      try{
+        const payload={ action:'cEnterFromShareLink', oaUserId: currentProfile.userId, name: currentProfile.displayName, orderId };
+        const res=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        const json=await res.json();
+        if(json.status!=='success') throw new Error(json.message||'failed');
+        const o=json.order;
+        $('cOrder').innerHTML=`
           <p>訂單編號：${o.orderId}</p>
           <p>開單人：${o.aName}</p>
           <p>標題：${o.title}</p>
           <p>起點：${o.fromStation}</p>
           <p>終點：${o.toStation}</p>
           <p>預計抵達時間：${o.arriveTime}</p>
-          <p>備註：${o.note}</p>
-        `;
-      } catch (err) {
-        showError('載入訂單失敗：' + err.message);
-      }
+          <p>備註：${o.note}</p>`;
+      }catch(err){ showError('載入訂單失敗：'+err.message); }
     }
 
-    main().catch(err => {
-      document.getElementById('loading').style.display = 'none';
-      showError('初始化失敗：' + err.message);
-    });
+    main().catch(err=>{ $('loading').style.display='none'; showError('初始化失敗：'+err.message); });
   </script>
 </body>
 </html>
