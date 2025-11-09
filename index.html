@@ -167,133 +167,115 @@
       <button id="copyBtn">複製連結</button>
     </div>
   </section>
+<section id="roleBConsent" style="display:none">
+  <h2>B 使用條款與隱私告知</h2>
+  <div class="card" style="max-height:42vh;overflow:auto">
+    <ul style="margin-left:18px">
+      <li>我已年滿 18 歲，並願以本名提供服務，收款帳戶與姓名相同。</li>
+      <li>個資告知（依《個資法》）：蒐集姓名、電話、位置；目的：媒合、送貨、收款；分享對象：A 可見 B 資訊，C 可見 B 即時位置；保存期間：達成目的後刪除或去識別化。</li>
+      <li>付款風險告知：建議現金收款；若同意轉帳，務必自行於網銀/郵局 App 確認「確實入帳」後再交付。若未確實核對而受騙，平台概不負責。</li>
+      <li>運送過程若遺失，需負賠償與相關法律責任；違者停權。</li>
+      <li>按下「啟程」後，平台將蒐集並分享你的即時位置給 C；交付完成或 30 分鐘後自動停止與刪除。</li>
+    </ul>
+  </div>
+  <div class="card">
+    <label><input type="checkbox" id="b_consent_chk"> 我已閱讀並同意上述條款（且我已年滿 18 歲）</label>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <button id="btnBConsentAgree" disabled>同意並開始填寫</button>
+      <button id="btnBConsentCancel" style="border-color:#c00;color:#c00">不同意</button>
+    </div>
+  </div>
+</section>
 
   <!-- B：註冊 / 路線 -->
 <section id="roleB" style="display:none">
   <h2>B 實名註冊 & 可媒合時段</h2>
   <p>您好，<b id="bName"></b></p>
 
-  <!-- KYC 條款 -->
-  <div class="card">
-    <h3>條款與告知</h3>
-    <ul style="margin-left:18px">
-      <li>年滿 18 歲；需使用本名、並以**同名**銀行帳戶收款。</li>
-      <li>個資告知（符合《個資法》）：蒐集姓名、電話、位置；目的為媒合、送貨、收款；分享對象：A 會看到你的基本資訊，C 會看到你的即時位置；保存期間：以達成目的所需之最短期間後刪除或去識別化。</li>
-      <li>付款風險告知：**建議現金收款**。若你同意接受 A/C 的轉帳，請務必**自行開啟網銀/郵局 App 確認已入帳**後再交付。若因未確實核對而受騙，平台概不負責。</li>
-      <li>運送過程若遺失需賠償並負相關法律責任，違反者將停權。</li>
-      <li>為履行送貨義務並讓 C 準確取貨，你按下「啟程」後，平台會蒐集你的**即時位置**並分享給 C；此分享會在交付完成或 30 分鐘後自動停止與刪除。</li>
-    </ul>
-    <label><input type="checkbox" id="b_agree_terms"> 我已閱讀並同意上述條款</label>
-  </div>
-
-  <!-- KYC 表單 -->
   <form id="formB" class="card">
     <h3>身分與收款</h3>
     <div class="grid g2">
       <label>真實姓名
         <input name="name" required>
       </label>
-      <label>身分證字號（僅作年齡驗證，不儲存）
-        <input name="idNumber" placeholder="A123456789">
+      <label>手機號碼（簡訊驗證）
+        <input name="phone" id="b_phone" inputmode="tel" placeholder="0912345678" required>
       </label>
     </div>
 
     <div class="grid g2">
-      <label>手機號碼（簡訊驗證）
-        <input name="phone" id="b_phone" inputmode="tel" placeholder="0912345678" required>
-      </label>
       <div>
         <button type="button" id="btnSendOtp">發送驗證碼</button>
-        <small id="otpHint">（可之後接 Firebase Phone Auth）</small>
         <div style="margin-top:6px">
-          <input id="otpCode" placeholder="輸入 6 碼" style="width:160px">
+          <input id="otpCode" placeholder="輸入驗證碼" style="width:160px">
           <button type="button" id="btnVerifyOtp">驗證</button>
           <small id="otpStatus" style="margin-left:6px"></small>
         </div>
         <div id="recaptcha-container"></div>
       </div>
-    </div>
-
-    <div class="grid g2">
       <label>銀行帳號（同姓名）
         <input name="bankAccount" required>
       </label>
-      <label>銀行代碼（可選）
-        <input name="bankCode" placeholder="例如 700">
-      </label>
     </div>
+
+    <label class="card">
+      存摺封面（jpg/png，清晰可辨同名）
+      <input type="file" id="bankbookFile" accept="image/*" />
+      <small id="bankbookHint">上傳後會連同表單送到後端（base64）。</small>
+    </label>
 
     <h3>可媒合「日期／時間」</h3>
     <div class="card" style="background:#fafafa">
       <div class="grid g2">
-        <label>日期
-          <input type="date" id="b_date" required>
+        <label>日期（yyyy/mm/dd）
+          <input id="b_date" placeholder="yyyy/mm/dd" required>
         </label>
         <div class="grid g2">
           <label>開始時間
-            <input type="time" id="b_time_start" step="900" required>
+            <select id="b_time_start"></select>
           </label>
           <label>結束時間
-            <input type="time" id="b_time_end" step="900" required>
+            <select id="b_time_end"></select>
           </label>
         </div>
       </div>
-      <div class="grid g2" style="margin-top:8px">
-        <label>重複
-          <select id="b_repeat">
-            <option value="none">不重複</option>
-            <option value="daily">每天</option>
-            <option value="weekly">每週（選星期）</option>
-            <option value="biweekly">每月第 2 個星期</option>
-            <option value="yearly">每年同日</option>
-            <option value="weekday">平日（一至五）</option>
-            <option value="custom">自訂</option>
-          </select>
-        </label>
-        <div id="customRepeat" style="display:none">
-          <div class="grid g2">
-            <label>間隔
-              <input type="number" id="r_interval" value="1" min="1">
-            </label>
-            <label>單位
-              <select id="r_unit">
-                <option value="week">週</option>
-                <option value="day">天</option>
-              </select>
-            </label>
-          </div>
-          <div style="margin-top:6px">星期：
-            <label><input type="checkbox" class="r_w" value="1">一</label>
-            <label><input type="checkbox" class="r_w" value="2">二</label>
-            <label><input type="checkbox" class="r_w" value="3">三</label>
-            <label><input type="checkbox" class="r_w" value="4">四</label>
-            <label><input type="checkbox" class="r_w" value="5">五</label>
-            <label><input type="checkbox" class="r_w" value="6">六</label>
-            <label><input type="checkbox" class="r_w" value="0">日</label>
-          </div>
-          <div class="grid g2" style="margin-top:6px">
-            <label>結束於（空白=持續）
-              <input type="date" id="r_until">
-            </label>
-            <label>或重複 N 次
-              <input type="number" id="r_count" min="1" placeholder="可不填">
-            </label>
-          </div>
+      <label style="margin-top:8px">重複
+        <select id="b_repeat">
+          <option value="none">不重複</option>
+          <option value="daily">每天</option>
+          <option value="weekly">每週（選星期）</option>
+          <option value="weekday">平日（一至五）</option>
+          <option value="custom">自訂</option>
+        </select>
+      </label>
+      <div id="customRepeat" style="display:none;margin-top:8px">
+        <div class="grid g2">
+          <label>間隔<input type="number" id="r_interval" value="1" min="1"></label>
+          <label>單位
+            <select id="r_unit"><option value="week">週</option><option value="day">天</option></select>
+          </label>
         </div>
-      </div>
-
-      <h4 style="margin-top:12px">活動區域（縣市 / 鄉鎮）</h4>
-      <div class="grid g2">
-        <label>縣市
-          <select id="b_county" required></select>
-        </label>
-        <label>鄉鎮市區
-          <select id="b_town"></select>
-        </label>
+        <div style="margin-top:6px">星期：
+          <label><input type="checkbox" class="r_w" value="1">一</label>
+          <label><input type="checkbox" class="r_w" value="2">二</label>
+          <label><input type="checkbox" class="r_w" value="3">三</label>
+          <label><input type="checkbox" class="r_w" value="4">四</label>
+          <label><input type="checkbox" class="r_w" value="5">五</label>
+          <label><input type="checkbox" class="r_w" value="6">六</label>
+          <label><input type="checkbox" class="r_w" value="0">日</label>
+        </div>
+        <div class="grid g2" style="margin-top:6px">
+          <label>結束於（yyyy/mm/dd，可空白）
+            <input id="r_until" placeholder="yyyy/mm/dd">
+          </label>
+          <label>或重複 N 次
+            <input type="number" id="r_count" min="1" placeholder="可不填">
+          </label>
+        </div>
       </div>
     </div>
 
-    <h3>通勤路線（最多 3 條，可加精準度）</h3>
+    <h3>通勤路線（最多 3 條）</h3>
     <div id="routesWrap" class="card">
       <div id="routes"></div>
       <button type="button" id="btnAddRoute">＋ 新增一條路線</button>
@@ -304,6 +286,7 @@
 
   <div id="bResult" class="card" style="display:none">註冊成功！</div>
 </section>
+
 
 
   <!-- C：從 A 的連結進來，看訂單 -->
@@ -477,6 +460,127 @@ const TOWNS = {
   "金門縣":["金城鎮","金沙鎮","金湖鎮","金寧鄉","烈嶼鄉","烏坵鄉"],
   "連江縣":["南竿鄉","北竿鄉","莒光鄉","東引鄉"]
 };
+function initRoleB(){
+  const goForm = ()=>{
+    show('roleBConsent', false);
+    show('roleB', true);
+    document.getElementById('bName').textContent = currentProfile.displayName;
+
+    // 日期預填（yyyy/mm/dd）
+    const d = document.getElementById('b_date');
+    const today = new Date();
+    const y = today.getFullYear(), m = String(today.getMonth()+1).padStart(2,'0'), dd = String(today.getDate()).padStart(2,'0');
+    d.value = `${y}/${m}/${dd}`;
+
+    // 30 分粒度時間（預設下一個 30 分 & +1 小時）
+    const now = new Date();
+    const startM = now.getMinutes();
+    const add = (30 - (startM % 30)) % 30;
+    const start = new Date(now); start.setMinutes(startM + (add===0?30:add), 0, 0);
+    const end   = new Date(start.getTime() + 60*60000);
+
+    buildTimeOptions(document.getElementById('b_time_start'),
+      `${String(start.getHours()).padStart(2,'0')}:${String(start.getMinutes()).padStart(2,'0')}`);
+    buildTimeOptions(document.getElementById('b_time_end'),
+      `${String(end.getHours()).padStart(2,'0')}:${String(end.getMinutes()).padStart(2,'0')}`);
+
+    // 重複顯示
+    const rep = document.getElementById('b_repeat');
+    const customBox = document.getElementById('customRepeat');
+    rep.addEventListener('change', ()=> customBox.style.display = (rep.value==='custom' ? 'block':'none') );
+
+    // 路線 UI
+    initRoutesUI();
+
+    // OTP 示意
+    let phoneVerified = false;
+    document.getElementById('btnSendOtp').addEventListener('click', ()=>{
+      const p = document.getElementById('b_phone').value.trim();
+      if(!p){ alert('請先輸入手機'); return; }
+      document.getElementById('otpStatus').textContent = '已送出（示意）';
+      // 之後接 Firebase：reCAPTCHA + signInWithPhoneNumber()
+    });
+    document.getElementById('btnVerifyOtp').addEventListener('click', ()=>{
+      const code = document.getElementById('otpCode').value.trim();
+      if(code.length<4){ alert('請輸入驗證碼'); return; }
+      phoneVerified = true;
+      document.getElementById('otpStatus').textContent = '驗證通過（示意）';
+      // 之後接 Firebase：confirmationResult.confirm(code)
+    });
+
+    // 送出
+    document.getElementById('formB').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      if(!document.querySelector('#formB [name="name"]').value.trim()){
+        alert('請輸入真實姓名'); return;
+      }
+      if(!document.getElementById('b_phone').value.trim()){
+        alert('請輸入手機'); return;
+      }
+
+      // 存摺封面（可選）
+      let bankbookBase64 = '';
+      const f = document.getElementById('bankbookFile').files?.[0];
+      if(f) bankbookBase64 = await fileToBase64(f);
+
+      // 路線
+      const routes = [];
+      document.querySelectorAll('#routes > .card').forEach(row=>{
+        const type = row.querySelector('.r_type').value;
+        const other = row.querySelector('.r_other')?.value || '';
+        const from = row.querySelector('.r_from').value.trim();
+        const to   = row.querySelector('.r_to').value.trim();
+        if(from && to) routes.push({ type, other, from, to });
+      });
+
+      const payload = {
+        action: 'registerBUser',
+        oaUserId: currentProfile.userId,
+        name: document.querySelector('#formB [name="name"]').value.trim(),
+        phone: document.getElementById('b_phone').value.trim(),
+        bankAccount: document.querySelector('#formB [name="bankAccount"]').value.trim(),
+        bankbookImageBase64: bankbookBase64, // 後端可解碼存 Drive
+        // 可媒合時段
+        date: document.getElementById('b_date').value.trim(), // yyyy/mm/dd
+        timeStart: document.getElementById('b_time_start').value,
+        timeEnd:   document.getElementById('b_time_end').value,
+        repeat: document.getElementById('b_repeat').value,
+        repeatCustom: {
+          interval: Number(document.getElementById('r_interval')?.value || 1),
+          unit: document.getElementById('r_unit')?.value || 'week',
+          weekdays: Array.from(document.querySelectorAll('.r_w:checked')).map(x=>Number(x.value)),
+          until: document.getElementById('r_until')?.value || '',
+          count: document.getElementById('r_count')?.value || ''
+        },
+        routes,
+        agree: true,
+        phoneVerified
+      };
+
+      try{
+        const res = await fetch(BACKEND_URL,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        const json = await res.json();
+        if(json.status!=='success') throw new Error(json.message || 'failed');
+        document.getElementById('bResult').style.display='block';
+      }catch(err){ showError('送出失敗：'+err.message); }
+    });
+  };
+
+  const goConsent = ()=>{
+    show('roleB', false); show('roleBConsent', true);
+    const chk = document.getElementById('b_consent_chk');
+    const btn = document.getElementById('btnBConsentAgree');
+    const refresh = ()=> btn.disabled = !chk.checked;
+    chk.addEventListener('change', refresh); refresh();
+
+    btn.addEventListener('click', ()=>{ setBConsent(); goForm(); });
+    document.getElementById('btnBConsentCancel').addEventListener('click', ()=>{
+      if(liff?.closeWindow) liff.closeWindow(); else location.href='https://line.me/R/';
+    });
+  };
+
+  if(hasBConsent()) goForm(); else goConsent();
+}
 
 // 補上縣市選單
 function initCountyTown(){
@@ -494,36 +598,26 @@ function initCountyTown(){
 const MAX_ROUTES = 3;
 const TRANS_TYPES = ["台鐵","高鐵","台北捷運","高雄捷運","其他"];
 
-// 從 STOP_DATA 對應出站名陣列（給 datalist 自動完成）
 function stationsByType(type){
   if(type==="其他") return [];
-  if(type==="台鐵") {
-    // 你的 STOP_DATA 若是「台鐵（依縣市）」版，合併所有縣市的站名
-    const out = new Set();
-    const tai = STOP_DATA["台鐵（依縣市）"];
+  if(type==="台鐵"){
+    const out=new Set(); const tai = STOP_DATA["台鐵（依縣市）"];
     Object.keys(tai).forEach(k=> tai[k].forEach(s=>out.add(s)));
     return [...out];
   }
-  if(type==="高鐵"){ return STOP_DATA["高鐵"]["全線"]; }
-  if(type==="台北捷運"){
-    const t = STOP_DATA["台北捷運"]; return Object.keys(t).flatMap(line=>t[line]);
-  }
-  if(type==="高雄捷運"){
-    const t = STOP_DATA["高雄捷運"]; return Object.keys(t).flatMap(line=>t[line]);
-  }
+  if(type==="高鐵") return STOP_DATA["高鐵"]["全線"];
+  if(type==="台北捷運"){ const t=STOP_DATA["台北捷運"]; return Object.keys(t).flatMap(l=>t[l]); }
+  if(type==="高雄捷運"){ const t=STOP_DATA["高雄捷運"]; return Object.keys(t).flatMap(l=>t[l]); }
   return [];
 }
 
 function renderRouteRow(idx){
-  const wrap = document.createElement('div');
-  wrap.className = 'card';
-  wrap.style.marginTop = '8px';
-  wrap.innerHTML = `
+  const wrap=document.createElement('div');
+  wrap.className='card'; wrap.style.marginTop='8px';
+  wrap.innerHTML=`
     <div class="grid g2">
       <label>交通工具
-        <select class="r_type">
-          ${TRANS_TYPES.map(t=>`<option value="${t}">${t}</option>`).join('')}
-        </select>
+        <select class="r_type">${TRANS_TYPES.map(t=>`<option value="${t}">${t}</option>`).join('')}</select>
       </label>
       <label class="r_other_wrap" style="display:none">請填交通工具
         <input class="r_other">
@@ -546,43 +640,37 @@ function renderRouteRow(idx){
 
 function initRoutesUI(){
   const list = document.getElementById('routes');
-  const btn = document.getElementById('btnAddRoute');
+  const btn  = document.getElementById('btnAddRoute');
 
-  function addRow(){
-    const idx = list.children.length + 1;
+  const addRow = ()=>{
+    const idx=list.children.length+1;
     if(idx>MAX_ROUTES){ alert('最多 3 條路線'); return; }
-    const row = renderRouteRow(idx);
+    const row=renderRouteRow(idx);
     list.appendChild(row);
 
-    const typeSel = row.querySelector('.r_type');
+    const typeSel   = row.querySelector('.r_type');
     const otherWrap = row.querySelector('.r_other_wrap');
-    const otherInput = row.querySelector('.r_other');
-    const fromInput = row.querySelector('.r_from');
-    const toInput = row.querySelector('.r_to');
-    const dlFrom = row.querySelector(`#dl_from_${idx}`);
-    const dlTo = row.querySelector(`#dl_to_${idx}`);
+    const dlFrom    = row.querySelector(`#dl_from_${idx}`);
+    const dlTo      = row.querySelector(`#dl_to_${idx}`);
 
-    function refreshDatalist(){
+    const refresh = ()=>{
       const tp = typeSel.value;
-      const showOther = (tp==="其他");
-      otherWrap.style.display = showOther ? 'block':'none';
-
-      const list = stationsByType(tp);
-      dlFrom.innerHTML = ''; dlTo.innerHTML = '';
-      list.forEach(s=> {
-        const o1=document.createElement('option'); o1.value=s; dlFrom.appendChild(o1);
-        const o2=document.createElement('option'); o2.value=s; dlTo.appendChild(o2);
-      });
-    }
-    typeSel.addEventListener('change', refreshDatalist);
-    refreshDatalist();
+      otherWrap.style.display = (tp==="其他") ? 'block' : 'none';
+      const names = stationsByType(tp);
+      dlFrom.innerHTML=''; dlTo.innerHTML='';
+      names.forEach(s=>{ const a=document.createElement('option'); a.value=s; dlFrom.appendChild(a);
+                         const b=document.createElement('option'); b.value=s; dlTo.appendChild(b); });
+    };
+    typeSel.addEventListener('change', refresh);
+    refresh();
 
     row.querySelector('.r_del').addEventListener('click', ()=> row.remove());
-  }
+  };
 
   btn.addEventListener('click', addRow);
   addRow(); // 預設一條
 }
+
 
 // ======== OTP 掛鉤（可日後換成 Firebase） ========
 let phoneVerified = false;
@@ -688,6 +776,32 @@ function initRoleB(){
     }catch(err){ showError('送出失敗：' + err.message); }
   });
 }
+// B 同意
+const B_CONSENT_KEY = 'giger_b_consent_v1';
+const hasBConsent = ()=> !!JSON.parse(localStorage.getItem(B_CONSENT_KEY)||'false');
+const setBConsent  = ()=> localStorage.setItem(B_CONSENT_KEY,'true');
+
+// 30 分粒度時間（00:00~23:30）
+function buildTimeOptions(sel, prefill){ 
+  sel.innerHTML=''; 
+  for(let h=0; h<24; h++){
+    for(let m=0; m<60; m+=30){
+      const v = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+      const opt=document.createElement('option'); opt.value=v; opt.textContent=v; sel.appendChild(opt);
+    }
+  }
+  if (prefill) sel.value = prefill;
+}
+
+// 讀檔轉 base64
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = ()=> resolve(String(r.result));
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
 
 
     // —— LIFF 主流程
@@ -789,31 +903,7 @@ function initRoleB(){
       if(hasConsent()) goForm(); else goConsent();
     }
 
-    function initRoleB(){
-      show('roleB', true);
-      $('bName').textContent=currentProfile.displayName;
-      const form=$('formB');
-      form.addEventListener('submit', async (e)=>{
-        e.preventDefault();
-        const fd=new FormData(form);
-        const payload={
-          action:'registerBUser',
-          oaUserId: currentProfile.userId,
-          name: fd.get('name'),
-          bankAccount: fd.get('bankAccount'),
-          driveFileId: '',
-          commuteStartTime: fd.get('commuteStartTime'),
-          commuteEndTime: fd.get('commuteEndTime'),
-          commuteStations: fd.get('commuteStations')
-        };
-        try{
-          const res=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-          const json=await res.json();
-          if(json.status!=='success') throw new Error(json.message||'failed');
-          $('bResult').style.display='block';
-        }catch(err){ showError('送出失敗：'+err.message); }
-      });
-    }
+
 
     async function initRoleC(){
       show('roleC', true);
