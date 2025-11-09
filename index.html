@@ -429,170 +429,7 @@
       function calc(){ const t=(parseInt(base.value,10)||0)+(parseInt(tip.value,10)||0); out.textContent=t; }
       tip.addEventListener('input', calc); calc();
     }
-    // ======== 台灣縣市／鄉鎮（由北到南，常用精簡；你要完整版我再貼全表） ========
-const COUNTIES = [
-  "基隆市","台北市","新北市","桃園市","新竹市","新竹縣","苗栗縣",
-  "台中市","彰化縣","南投縣","雲林縣","嘉義市","嘉義縣",
-  "台南市","高雄市","屏東縣","宜蘭縣","花蓮縣","台東縣",
-  "澎湖縣","金門縣","連江縣"
-];
-const TOWNS = {
-  "基隆市":["中正區","七堵區","暖暖區","仁愛區","中山區","安樂區","信義區"],
-  "台北市":["中正區","大同區","中山區","松山區","大安區","萬華區","信義區","士林區","北投區","內湖區","南港區","文山區"],
-  "新北市":["板橋區","三重區","中和區","永和區","新店區","新莊區","樹林區","鶯歌區","三峽區","淡水區","汐止區","瑞芳區","土城區","蘆洲區","五股區","泰山區","林口區","深坑區","石碇區","坪林區","三芝區","石門區","八里區","平溪區","雙溪區","貢寮區","金山區","萬里區","烏來區"],
-  "桃園市":["桃園區","中壢區","平鎮區","八德區","楊梅區","蘆竹區","大溪區","龍潭區","龜山區","大園區","觀音區","新屋區","復興區"],
-  "新竹市":["東區","北區","香山區"],
-  "新竹縣":["竹北市","竹東鎮","新埔鎮","關西鎮","湖口鄉","新豐鄉","峨眉鄉","寶山鄉","北埔鄉","芎林鄉","橫山鄉","尖石鄉","五峰鄉"],
-  "苗栗縣":["苗栗市","頭份市","竹南鎮","後龍鎮","通霄鎮","苑裡鎮","卓蘭鎮","西湖鄉","銅鑼鄉","三義鄉","造橋鄉","頭屋鄉","公館鄉","大湖鄉","泰安鄉","獅潭鄉","南庄鄉"],
-  "台中市":["中區","東區","南區","西區","北區","北屯區","西屯區","南屯區","太平區","大里區","霧峰區","烏日區","豐原區","后里區","石岡區","東勢區","新社區","潭子區","大雅區","神岡區","大肚區","沙鹿區","龍井區","梧棲區","清水區","大甲區","外埔區","大安區"],
-  "彰化縣":["彰化市","員林市","鹿港鎮","和美鎮","溪湖鎮","田中鎮","北斗鎮","二林鎮","線西鄉","伸港鄉","花壇鄉","芬園鄉","大村鄉","永靖鄉","社頭鄉","埔心鄉","溪州鄉","田尾鄉","埤頭鄉","大城鄉","芳苑鄉","竹塘鄉","埔鹽鄉","秀水鄉","福興鄉","彰化縣其他"],
-  "南投縣":["南投市","草屯鎮","竹山鎮","集集鎮","名間鄉","鹿谷鄉","中寮鄉","魚池鄉","國姓鄉","水里鄉","信義鄉","仁愛鄉"],
-  "雲林縣":["斗六市","斗南鎮","虎尾鎮","西螺鎮","土庫鎮","北港鎮","莿桐鄉","林內鄉","二崙鄉","崙背鄉","麥寮鄉","東勢鄉","褒忠鄉","台西鄉","元長鄉","四湖鄉","口湖鄉","水林鄉"],
-  "嘉義市":["東區","西區"],
-  "嘉義縣":["太保市","朴子市","布袋鎮","民雄鄉","溪口鄉","新港鄉","六腳鄉","東石鄉","義竹鄉","鹿草鄉","水上鄉","中埔鄉","竹崎鄉","梅山鄉","番路鄉","大埔鄉","阿里山鄉"],
-  "台南市":["中西區","東區","南區","北區","安平區","安南區","永康區","歸仁區","新化區","左鎮區","玉井區","楠西區","南化區","仁德區","關廟區","龍崎區","官田區","麻豆區","佳里區","西港區","七股區","將軍區","學甲區","北門區","新營區","後壁區","白河區","東山區","六甲區","下營區","柳營區","鹽水區","善化區","大內區","山上區","新市區","安定區"],
-  "高雄市":["新興區","前金區","苓雅區","鹽埕區","鼓山區","旗津區","前鎮區","三民區","楠梓區","小港區","左營區","仁武區","大社區","岡山區","路竹區","阿蓮區","田寮區","燕巢區","橋頭區","梓官區","彌陀區","永安區","湖內區","鳳山區","大寮區","林園區","鳥松區","大樹區","旗山區","美濃區","六龜區","內門區","杉林區","甲仙區","桃源區","那瑪夏區","茄萣區"],
-  "屏東縣":["屏東市","潮州鎮","東港鎮","恆春鎮","里港鄉","鹽埔鄉","長治鄉","麟洛鄉","竹田鄉","內埔鄉","萬丹鄉","潮州鎮","崁頂鄉","新園鄉","南州鄉","林邊鄉","佳冬鄉","枋寮鄉","枋山鄉","車城鄉","滿州鄉","琉球鄉","三地門鄉","來義鄉","春日鄉","泰武鄉","獅子鄉","牡丹鄉","霧台鄉","瑪家鄉"],
-  "宜蘭縣":["宜蘭市","羅東鎮","蘇澳鎮","頭城鎮","礁溪鄉","壯圍鄉","員山鄉","冬山鄉","五結鄉","三星鄉","大同鄉","南澳鄉"],
-  "花蓮縣":["花蓮市","鳳林鎮","玉里鎮","新城鄉","吉安鄉","壽豐鄉","光復鄉","豐濱鄉","瑞穗鄉","富里鄉","秀林鄉","萬榮鄉","卓溪鄉"],
-  "台東縣":["台東市","成功鎮","關山鎮","卑南鄉","鹿野鄉","池上鄉","東河鄉","長濱鄉","太麻里鄉","大武鄉","綠島鄉","蘭嶼鄉","海端鄉","延平鄉","金峰鄉","達仁鄉"],
-  "澎湖縣":["馬公市","湖西鄉","白沙鄉","西嶼鄉","望安鄉","七美鄉"],
-  "金門縣":["金城鎮","金沙鎮","金湖鎮","金寧鄉","烈嶼鄉","烏坵鄉"],
-  "連江縣":["南竿鄉","北竿鄉","莒光鄉","東引鄉"]
-};
-function initRoleB(){
-  const goForm = ()=>{
-    show('roleBConsent', false);
-    show('roleB', true);
-    document.getElementById('bName').textContent = currentProfile.displayName;
 
-    // 日期預填（yyyy/mm/dd）
-    const d = document.getElementById('b_date');
-    const today = new Date();
-    const y = today.getFullYear(), m = String(today.getMonth()+1).padStart(2,'0'), dd = String(today.getDate()).padStart(2,'0');
-    d.value = `${y}/${m}/${dd}`;
-
-    // 30 分粒度時間（預設下一個 30 分 & +1 小時）
-    const now = new Date();
-    const startM = now.getMinutes();
-    const add = (30 - (startM % 30)) % 30;
-    const start = new Date(now); start.setMinutes(startM + (add===0?30:add), 0, 0);
-    const end   = new Date(start.getTime() + 60*60000);
-
-    buildTimeOptions(document.getElementById('b_time_start'),
-      `${String(start.getHours()).padStart(2,'0')}:${String(start.getMinutes()).padStart(2,'0')}`);
-    buildTimeOptions(document.getElementById('b_time_end'),
-      `${String(end.getHours()).padStart(2,'0')}:${String(end.getMinutes()).padStart(2,'0')}`);
-
-    // 重複顯示
-    const rep = document.getElementById('b_repeat');
-    const customBox = document.getElementById('customRepeat');
-    rep.addEventListener('change', ()=> customBox.style.display = (rep.value==='custom' ? 'block':'none') );
-
-    // 路線 UI
-    initRoutesUI();
-
-    // OTP 示意
-    let phoneVerified = false;
-    document.getElementById('btnSendOtp').addEventListener('click', ()=>{
-      const p = document.getElementById('b_phone').value.trim();
-      if(!p){ alert('請先輸入手機'); return; }
-      document.getElementById('otpStatus').textContent = '已送出（示意）';
-      // 之後接 Firebase：reCAPTCHA + signInWithPhoneNumber()
-    });
-    document.getElementById('btnVerifyOtp').addEventListener('click', ()=>{
-      const code = document.getElementById('otpCode').value.trim();
-      if(code.length<4){ alert('請輸入驗證碼'); return; }
-      phoneVerified = true;
-      document.getElementById('otpStatus').textContent = '驗證通過（示意）';
-      // 之後接 Firebase：confirmationResult.confirm(code)
-    });
-
-    // 送出
-    document.getElementById('formB').addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      if(!document.querySelector('#formB [name="name"]').value.trim()){
-        alert('請輸入真實姓名'); return;
-      }
-      if(!document.getElementById('b_phone').value.trim()){
-        alert('請輸入手機'); return;
-      }
-
-      // 存摺封面（可選）
-      let bankbookBase64 = '';
-      const f = document.getElementById('bankbookFile').files?.[0];
-      if(f) bankbookBase64 = await fileToBase64(f);
-
-      // 路線
-      const routes = [];
-      document.querySelectorAll('#routes > .card').forEach(row=>{
-        const type = row.querySelector('.r_type').value;
-        const other = row.querySelector('.r_other')?.value || '';
-        const from = row.querySelector('.r_from').value.trim();
-        const to   = row.querySelector('.r_to').value.trim();
-        if(from && to) routes.push({ type, other, from, to });
-      });
-
-      const payload = {
-        action: 'registerBUser',
-        oaUserId: currentProfile.userId,
-        name: document.querySelector('#formB [name="name"]').value.trim(),
-        phone: document.getElementById('b_phone').value.trim(),
-        bankAccount: document.querySelector('#formB [name="bankAccount"]').value.trim(),
-        bankbookImageBase64: bankbookBase64, // 後端可解碼存 Drive
-        // 可媒合時段
-        date: document.getElementById('b_date').value.trim(), // yyyy/mm/dd
-        timeStart: document.getElementById('b_time_start').value,
-        timeEnd:   document.getElementById('b_time_end').value,
-        repeat: document.getElementById('b_repeat').value,
-        repeatCustom: {
-          interval: Number(document.getElementById('r_interval')?.value || 1),
-          unit: document.getElementById('r_unit')?.value || 'week',
-          weekdays: Array.from(document.querySelectorAll('.r_w:checked')).map(x=>Number(x.value)),
-          until: document.getElementById('r_until')?.value || '',
-          count: document.getElementById('r_count')?.value || ''
-        },
-        routes,
-        agree: true,
-        phoneVerified
-      };
-
-      try{
-        const res = await fetch(BACKEND_URL,{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-        const json = await res.json();
-        if(json.status!=='success') throw new Error(json.message || 'failed');
-        document.getElementById('bResult').style.display='block';
-      }catch(err){ showError('送出失敗：'+err.message); }
-    });
-  };
-
-  const goConsent = ()=>{
-    show('roleB', false); show('roleBConsent', true);
-    const chk = document.getElementById('b_consent_chk');
-    const btn = document.getElementById('btnBConsentAgree');
-    const refresh = ()=> btn.disabled = !chk.checked;
-    chk.addEventListener('change', refresh); refresh();
-
-    btn.addEventListener('click', ()=>{ setBConsent(); goForm(); });
-    document.getElementById('btnBConsentCancel').addEventListener('click', ()=>{
-      if(liff?.closeWindow) liff.closeWindow(); else location.href='https://line.me/R/';
-    });
-  };
-
-  if(hasBConsent()) goForm(); else goConsent();
-}
-
-// 補上縣市選單
-function initCountyTown(){
-  const cty = document.getElementById('b_county');
-  const town = document.getElementById('b_town');
-  cty.innerHTML = ''; COUNTIES.forEach(n=>{ const o=document.createElement('option'); o.value=n; o.textContent=n; cty.appendChild(o); });
-  function refreshTown(){
-    const list = TOWNS[cty.value] || [];
-    town.innerHTML=''; list.forEach(t=>{ const o=document.createElement('option'); o.value=t; o.textContent=t; town.appendChild(o); });
-  }
-  cty.addEventListener('change', refreshTown); refreshTown();
-}
 
 // ======== B 的「通勤路線」動態元件（最多 3 組） ========
 const MAX_ROUTES = 3;
@@ -690,7 +527,27 @@ document.addEventListener('click', (e)=>{
     document.getElementById('otpStatus').textContent = '驗證通過（示意）。';
   }
 });
+// 30 分粒度時間（00:00~23:30）
+function buildTimeOptions(sel, prefill){ 
+  sel.innerHTML=''; 
+  for(let h=0; h<24; h++){
+    for(let m=0; m<60; m+=30){
+      const v = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+      const opt=document.createElement('option'); opt.value=v; opt.textContent=v; sel.appendChild(opt);
+    }
+  }
+  if (prefill) sel.value = prefill;
+}
 
+// 讀檔轉 base64
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = ()=> resolve(String(r.result));
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
 // ======== B 初始化：縣市/鄉鎮、路線、行事曆式欄位、送出 ========
 function initRoleB(){
   show('roleB', true);
@@ -781,27 +638,7 @@ const B_CONSENT_KEY = 'giger_b_consent_v1';
 const hasBConsent = ()=> !!JSON.parse(localStorage.getItem(B_CONSENT_KEY)||'false');
 const setBConsent  = ()=> localStorage.setItem(B_CONSENT_KEY,'true');
 
-// 30 分粒度時間（00:00~23:30）
-function buildTimeOptions(sel, prefill){ 
-  sel.innerHTML=''; 
-  for(let h=0; h<24; h++){
-    for(let m=0; m<60; m+=30){
-      const v = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-      const opt=document.createElement('option'); opt.value=v; opt.textContent=v; sel.appendChild(opt);
-    }
-  }
-  if (prefill) sel.value = prefill;
-}
 
-// 讀檔轉 base64
-function fileToBase64(file){
-  return new Promise((resolve,reject)=>{
-    const r = new FileReader();
-    r.onload = ()=> resolve(String(r.result));
-    r.onerror = reject;
-    r.readAsDataURL(file);
-  });
-}
 
 
     // —— LIFF 主流程
