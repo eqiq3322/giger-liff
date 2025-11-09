@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>GIGER LIFF</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 16px; }
+    h2 { margin-top: 0; }
+    label { display:block; margin: 8px 0; }
+    input, textarea { width: 100%; box-sizing: border-box; padding: 8px; }
+    button { padding: 8px 16px; margin-top: 8px; }
+    #error { color: #c00; margin-bottom: 8px; }
+    .card { border: 1px solid #ddd; border-radius: 8px; padding: 12px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+  <div id="loading">載入中...</div>
+  <div id="error" style="display:none;"></div>
+
+  <!-- A：建立訂單 -->
+  <div id="roleA" style="display:none;">
+    <h2>A 建立訂單</h2>
+    <p>您好，<span id="aName"></span></p>
+    <form id="formA" class="card">
+      <label>
+        訂單標題：
+        <input name="title" required>
+      </label>
+      <label>
+        起點站：
+        <input name="fromStation" required>
+      </label>
+      <label>
+        終點站：
+        <input name="toStation" required>
+      </label>
+      <label>
+        預計抵達時間：
+        <input name="arriveTime" placeholder="2025-11-09 18:00" required>
+      </label>
+      <label>
+        備註：
+        <textarea name="note" rows="3"></textarea>
+      </label>
+      <button type="submit">送出訂單</button>
+    </form>
+    <div id="aResult" class="card" style="display:none;">
+      <p>訂單已建立，編號：<span id="orderId"></span></p>
+      <p>給 C 的連結：</p>
+      <input id="shareUrl" readonly>
+      <button id="copyBtn">複製連結</button>
+    </div>
+  </div>
+
+  <!-- B：註冊 / 路線 -->
+  <div id="roleB" style="display:none;">
+    <h2>B 註冊 & 路線資料</h2>
+    <p>您好，<span id="bName"></span></p>
+    <form id="formB" class="card">
+      <label>
+        真實姓名：
+        <input name="name" required>
+      </label>
+      <label>
+        銀行帳號：
+        <input name="bankAccount" required>
+      </label>
+      <label>
+        通勤起始時間：
+        <input name="commuteStartTime" placeholder="08:00" required>
+      </label>
+      <label>
+        通勤結束時間：
+        <input name="commuteEndTime" placeholder="18:00" required>
+      </label>
+      <label>
+        路線站點（用逗號分隔）：
+        <input name="commuteStations" placeholder="R16,R15,R14,O5" required>
+      </label>
+      <button type="submit">送出</button>
+    </form>
+    <div id="bResult" class="card" style="display:none;">
+      <p>註冊成功！</p>
+    </div>
+  </div>
+
+  <!-- C：從 A 的連結進來，看訂單 -->
+  <div id="roleC" style="display:none;">
+    <h2>訂單資訊</h2>
+    <p>您好，<span id="cName"></span></p>
+    <div id="cOrder" class="card">
+      <p>載入中...</p>
+    </div>
+  </div>
+
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <script>
+    // === 這兩個要換成你自己的 ===
+    const LIFF_ID = "【在這裡填你的 LIFF ID】";
+    const BACKEND_URL = "【在這裡填你的 GAS exec URL】";
+    // ===========================
+
+    let currentProfile = null;
+    let role = null;
+    let orderId = null;
+
+    function showError(msg) {
+      const el = document.getElementById('error');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    async function main() {
+      const params = new URLSearchParams(location.search);
+      role = params.get('role') || 'A';
+      orderId = params.get('orderId') || null;
+
+      await liff.init({ liffId: LIFF_ID });
+
+      if (!liff.isLoggedIn()) {
+        liff.login();
+        return;
+      }
+
+      currentProfile = await liff.getProfile();
+
+      document.getElementById('loading').style.display = 'none';
+
+      if (role === 'A') {
+        initRoleA();
+      } else if (role === 'B') {
+        initRoleB();
+      } else if (role === 'C') {
+        initRoleC();
+      }
+    }
+
+    function initRoleA() {
+      document.getElementById('roleA').style.display = 'block';
+      document.getElementById('aName').textContent = currentProfile.displayName;
+
+      const form = document.getElementById('formA');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const payload = {
+          action: 'registerOrderFromA',
+          oaUserId: currentProfile.userId,
+          name: currentProfile.displayName,
+          title: formData.get('title'),
+          fromStation: formData.get('fromStation'),
+          toStation: formData.get('toStation'),
+          arriveTime: formData.get('arriveTime'),
+          note: formData.get('note')
+        };
+        try {
+          const res = await fetch(BACKEND_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const json = await res.json();
+          if (json.status !== 'success') throw new Error(json.message || 'failed');
+          document.getElementById('orderId').textContent = json.orderId;
+
+          const shareUrl = 'https://liff.line.me/' + LIFF_ID +
+            '?role=C&orderId=' + encodeURIComponent(json.orderId);
+          const shareInput = document.getElementById('shareUrl');
+          shareInput.value = shareUrl;
+
+          document.getElementById('aResult').style.display = 'block';
+        } catch (err) {
+          showError('送出失敗：' + err.message);
+        }
+      });
+
+      document.getElementById('copyBtn').addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(document.getElementById('shareUrl').value);
+          alert('已複製連結');
+        } catch (err) {
+          alert('複製失敗，請手動長按複製');
+        }
+      });
+    }
+
+    function initRoleB() {
+      document.getElementById('roleB').style.display = 'block';
+      document.getElementById('bName').textContent = currentProfile.displayName;
+
+      const form = document.getElementById('formB');
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(form);
+        const payload = {
+          action: 'registerBUser',
+          oaUserId: currentProfile.userId,
+          name: formData.get('name'),
+          bankAccount: formData.get('bankAccount'),
+          driveFileId: '', // 之後再補上傳存摺功能
+          commuteStartTime: formData.get('commuteStartTime'),
+          commuteEndTime: formData.get('commuteEndTime'),
+          commuteStations: formData.get('commuteStations')
+        };
+        try {
+          const res = await fetch(BACKEND_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const json = await res.json();
+          if (json.status !== 'success') throw new Error(json.message || 'failed');
+          document.getElementById('bResult').style.display = 'block';
+        } catch (err) {
+          showError('送出失敗：' + err.message);
+        }
+      });
+    }
+
+    async function initRoleC() {
+      document.getElementById('roleC').style.display = 'block';
+      document.getElementById('cName').textContent = currentProfile.displayName;
+
+      if (!orderId) {
+        showError('缺少 orderId');
+        return;
+      }
+
+      try {
+        const payload = {
+          action: 'cEnterFromShareLink',
+          oaUserId: currentProfile.userId,
+          name: currentProfile.displayName,
+          orderId: orderId
+        };
+        const res = await fetch(BACKEND_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await res.json();
+        if (json.status !== 'success') throw new Error(json.message || 'failed');
+
+        const o = json.order;
+        const div = document.getElementById('cOrder');
+        div.innerHTML = `
+          <p>訂單編號：${o.orderId}</p>
+          <p>開單人：${o.aName}</p>
+          <p>標題：${o.title}</p>
+          <p>起點：${o.fromStation}</p>
+          <p>終點：${o.toStation}</p>
+          <p>預計抵達時間：${o.arriveTime}</p>
+          <p>備註：${o.note}</p>
+        `;
+      } catch (err) {
+        showError('載入訂單失敗：' + err.message);
+      }
+    }
+
+    main().catch(err => {
+      document.getElementById('loading').style.display = 'none';
+      showError('初始化失敗：' + err.message);
+    });
+  </script>
+</body>
+</html>
