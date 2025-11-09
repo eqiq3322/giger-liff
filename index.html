@@ -52,7 +52,7 @@
       <label><input type="checkbox" id="consent_chk2"> 我同意個資蒐集/利用與分享之說明。</label>
       <label><input type="checkbox" id="consent_chk3"> 我了解平台不經手運費與責任限制。</label>
       <div style="display:flex;gap:8px;margin-top:8px">
-        <button id="btnConsentAgree" disabled>同意並開始填寫</button>
+        <button id="btnConsentAgree" disabled>同意</button>
         <button id="btnConsentCancel" style="border-color:#c00;color:#c00">不同意</button>
       </div>
       <small>請勾選以上三項以啟用「同意」按鈕。</small>
@@ -61,7 +61,7 @@
 
   <!-- A：建立訂單 -->
   <section id="roleA" style="display:none">
-    <h2>A 建立訂單</h2>
+    <h2>建立訂單</h2>
     <p>您好，<b id="aName"></b></p>
 
     <form id="formA" class="card">
@@ -95,7 +95,7 @@
           </label>
           <div></div>
         </div>
-        <small>夜間建議選「超商門口 / 有警衛大樓門口」。B 如判斷不安全有權取消且不記爽約。</small>
+        <small>夜間建議選「超商門口 / 有警衛大樓門口」。送貨人如判斷不安全有權取消且不記爽約。</small>
       </fieldset>
 
       <!-- 到貨點（終點） -->
@@ -122,7 +122,7 @@
           </label>
           <div></div>
         </div>
-        <small>以接單人方便的時間為主；若接單者過少，平台將提前通知協調時間。</small>
+        <small>以接單人方便的時間為主；若接單者過少，平台將通知協調時間。</small>
       </fieldset>
 
       <!-- 收貨人 -->
@@ -149,7 +149,7 @@
           </label>
         </div>
         <div style="margin-top:6px">預估應付：<b id="farePreview">100</b> 元</div>
-        <small>平台不經手款項，建議現金結清；若採轉帳，B 須自行承擔確認風險。</small>
+        <small>平台不經手款項，建議現金結清。</small>
       </div>
 
       <label>備註
