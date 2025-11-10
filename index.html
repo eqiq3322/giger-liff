@@ -242,6 +242,153 @@
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script>
+    // UI localization/repair for garbled text
+    (function localize(){
+      const $ = (id)=>document.getElementById(id);
+      const relabelByControl = (ctrlSel, text) => {
+        const el = document.querySelector(ctrlSel);
+        if (!el) return;
+        const label = el.closest('label');
+        if (!label) return;
+        Array.from(label.childNodes).forEach(n=>{ if(n.nodeType===3) label.removeChild(n); });
+        label.insertBefore(document.createTextNode(text+' '), label.firstChild);
+      };
+      const setButtonText = (sel, text)=>{ const el=document.querySelector(sel); if(el) el.textContent=text; };
+      const setSmallText = (sel, text)=>{ const el=document.querySelector(sel); if(el) el.textContent=text; };
+
+      // Loading
+      if ($('loading')) $('loading').textContent = '載入中…';
+
+      // A consent section
+      const roleAConsent = $('roleAConsent');
+      if (roleAConsent){
+        const h2 = roleAConsent.querySelector('h2'); if(h2) h2.textContent='使用條款與隱私權';
+        const h3 = roleAConsent.querySelector('.card h3'); if(h3) h3.textContent='請閱讀以下內容';
+        const ul = roleAConsent.querySelector('ul');
+        if (ul){
+          ul.innerHTML = [
+            '以 LINE 訊息往來，含合約、發票、單據等；A 負責遵循平台規範',
+            '個資依個資法使用；用途包含聯絡、送貨與收款；A/C 與 B 可能共享必要資訊；資料依目的保存或去識別',
+            '禁止站內做買賣；平台不提供保管款項，建議現場清楚交易；B 應自行確認風險',
+            '食安、禁運規範請遵守，不得託運違禁品與危險物',
+            '夜間安全：建議選擇 24 小時超商、警衛大樓等安全地點；B 得以自身安全為由判斷停止並求助',
+            '大眾運輸誤點風險：B 可能受影響而延誤',
+            '責任限制：除平台重大疏失，平台不負連帶責任',
+            'C 收貨爭議：請先與 A 協商處理',
+            '如 C 爾後取消，A 已支付之費用恕不退回',
+            'Linebot 可能推播服務與款項通知（A/C）'
+          ].map(t=>`<li>${t}</li>`).join('');
+        }
+        // Consent checkboxes & buttons
+        const fixLabel = (id, text)=>{
+          const inp = $(id); if(!inp) return; const lab = inp.closest('label'); if(!lab) return;
+          lab.innerHTML = `<input type="checkbox" id="${id}"> ${text}`;
+        };
+        fixLabel('consent_chk1','我同意以 LINE 郵件/訊息往來');
+        fixLabel('consent_chk2','我同意個資使用/必要共享說明');
+        fixLabel('consent_chk3','我同意費用、責任與風險條款');
+        setButtonText('#btnConsentAgree','同意');
+        setButtonText('#btnConsentCancel','不同意');
+        const foot = roleAConsent.querySelector('.card small');
+        if (foot) foot.textContent = '請勾選以上條款以繼續使用';
+      }
+
+      // Role A form labels and placeholders
+      const roleA = $('roleA');
+      if (roleA){
+        const h2 = roleA.querySelector('h2'); if(h2) h2.textContent='建立訂單';
+        const helloP = roleA.querySelector('p'); if(helloP) helloP.innerHTML='您好，<b id="aName"></b>';
+        const h3 = roleA.querySelector('form h3'); if(h3) h3.textContent='訂單內容';
+        relabelByControl('textarea[name="itemDesc"]','貨物描述（特性/備註）');
+        relabelByControl('#fromSystem','系統');
+        relabelByControl('#fromLine','路線');
+        relabelByControl('#fromStation','站點');
+        relabelByControl('#fromDetail','詳細位置（選填）');
+        relabelByControl('#pickupTime','交貨時間');
+        const fromNote = roleA.querySelector('.fromWrap small');
+        if(fromNote) fromNote.textContent = '夜間建議選安全地點，例如 24 小時超商或警衛大樓。送貨人得依自身安全判斷取消。';
+        relabelByControl('#toSystem','系統');
+        relabelByControl('#toLine','路線');
+        relabelByControl('#toStation','站點');
+        relabelByControl('#toDetail','詳細位置（選填）');
+        relabelByControl('#deliveryTime','送達時間');
+        const toNote = roleA.querySelector('.toWrap small');
+        if(toNote) toNote.textContent = '以收件人方便為主，如難以接聽將通知協調時段。';
+        relabelByControl('input[name="receiverTitle"]','收貨人稱謂');
+        relabelByControl('input[name="receiverPhone"]','收貨人電話');
+        const fareH4 = roleA.querySelector('.card h4'); if(fareH4) fareH4.textContent='費用與付款';
+        // Radio labels
+        const payerA = roleA.querySelector('input[name="payer"][value="A"]')?.closest('label'); if(payerA) payerA.innerHTML='<input type="radio" name="payer" value="A" checked> 運費由 A 付款';
+        const payerC = roleA.querySelector('input[name="payer"][value="C"]')?.closest('label'); if(payerC) payerC.innerHTML='<input type="radio" name="payer" value="C"> 運費由 C 付款';
+        relabelByControl('#baseFare','運費（固定）');
+        relabelByControl('#tip','小費（可輸入數字）');
+        const farePreview = roleA.querySelector('#farePreview'); if(farePreview){
+          const wrap = farePreview.parentElement; if(wrap) wrap.innerHTML = '預估總費用：<b id="farePreview">'+farePreview.textContent+'</b>';
+        }
+        const fareSmall = roleA.querySelector('.card small');
+        if(fareSmall) fareSmall.textContent = '平台不代收保管款項，建議現場結清或轉帳，B 應自行確認入帳風險。';
+        relabelByControl('textarea[name="note"]','備註');
+        const submitBtn = roleA.querySelector('button[type="submit"]'); if(submitBtn) submitBtn.textContent='送出訂單';
+        // Result card
+        const aResult = $('aResult');
+        if(aResult){ aResult.innerHTML = '<p>訂單編號：<span id="orderId"></span></p><p>分享給 C 的連結</p><input id="shareUrl" readonly><button id="copyBtn">複製連結</button>'; }
+      }
+
+      // Role A Dashboard
+      const aDash = $('roleADashboard');
+      if(aDash){
+        const h2=aDash.querySelector('h2'); if(h2) h2.textContent='我的寄件';
+        const hello=aDash.querySelector('p'); if(hello) hello.innerHTML='您好，<b id="aDashName"></b>';
+        const h4=aDash.querySelector('h4'); if(h4) h4.textContent='我的訂單';
+        const list=aDash.querySelector('#aDashboardList p'); if(list) list.textContent='載入中…';
+      }
+
+      // Role B setup and consent
+      const roleB = $('roleB');
+      if(roleB){
+        const h2=roleB.querySelector('h2'); if(h2) h2.textContent='GIGER 夥伴設定';
+        const hello=roleB.querySelector('p'); if(hello) hello.innerHTML='您好，<b id="bName"></b>';
+        const bTerms = roleB.querySelector('#roleBConsent .card');
+        if(bTerms){
+          const h3=bTerms.querySelector('h3'); if(h3) h3.textContent='請詳閱 GIGER 夥伴條款';
+          // Update bullet titles
+          const h4s = roleB.querySelectorAll('#roleBConsent h4');
+          if(h4s[0]) h4s[0].textContent='1. 夥伴資格（KYC）';
+          if(h4s[1]) h4s[1].textContent='2. 個資權益與告知（依個資法）';
+          if(h4s[2]) h4s[2].textContent='3. 付款風險';
+          if(h4s[3]) h4s[3].textContent='4. 責任與義務';
+          if(h4s[4]) h4s[4].textContent='5. 位置資訊告知';
+        }
+        const fixBLabel=(id,text)=>{ const inp=$(id); if(!inp) return; const lab=inp.closest('label'); if(!lab) return; lab.innerHTML=`<input type="checkbox" id="${id}"> ${text}`; };
+        fixBLabel('b_consent_chk1','我已年滿 18 歲並提供真實資料');
+        fixBLabel('b_consent_chk2','我已詳閱並同意隱私與個資條款');
+        fixBLabel('b_consent_chk3','我了解付款風險、責任與位置共享機制');
+        setButtonText('#btnBConsentAgree','同意並開始設定');
+        setButtonText('#btnBConsentCancel','不同意');
+        // Form labels
+        relabelByControl('input[name="name"]','真實姓名');
+        relabelByControl('input[name="phone"]','聯絡電話');
+        relabelByControl('input[name="bankAccount"]','銀行帳號（用於撥款）');
+        relabelByControl('input[name="bankPhoto"]','銀行帳戶照片（存摺封面）');
+        const bpSmall = roleB.querySelector('input[name="bankPhoto"]')?.closest('label')?.querySelector('small');
+        if(bpSmall) bpSmall.textContent='請確保「戶名」、「帳號」清晰可辨';
+        const matchLbl = roleB.querySelector('input[name="nameMatch"]')?.closest('label');
+        if(matchLbl) matchLbl.innerHTML='<input type="checkbox" name="nameMatch" required> 我確認此銀行帳戶戶名與上述姓名一致';
+        const routeBtn = $('addRouteBtn'); if(routeBtn) routeBtn.innerHTML='<b>+ 新增通勤路線</b>';
+        const saveBtn = roleB.querySelector('form#formB button[type="submit"]'); if(saveBtn) saveBtn.textContent='儲存設定';
+        const bResult = $('bResult'); if(bResult) bResult.textContent='設定已儲存，審核中…';
+      }
+
+      // Role C
+      const roleC = $('roleC');
+      if(roleC){
+        const h2=roleC.querySelector('h2'); if(h2) h2.textContent='訂單信息';
+        const hello=roleC.querySelector('p'); if(hello) hello.innerHTML='您好，<b id="cName"></b>';
+        const card=roleC.querySelector('#cOrder'); if(card) card.textContent='載入中…';
+      }
+
+      // Minor text in JS-generated content will use these cleaned labels going forward.
+    })();
     // === 換成你的實際值 ===
     const LIFF_ID = "2008451062-KyyOrgXx";
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbylIfdM47Hh8CzdDS_bpv-vDppo1OUiKH9HzkeQa9YjDkNgyuZjTQipdNg9CLd_DOKETg/exec";
