@@ -257,7 +257,7 @@
     function hasConsentB(){ try{ const raw=localStorage.getItem(CONSENT_KEY_B); return raw && JSON.parse(raw).agreed; }catch{ return false; } }
     function setConsentB(){ localStorage.setItem(CONSENT_KEY_B, JSON.stringify({agreed:true, ts:Date.now()})); }
     
-    function show(id, on=true){ const el=$(id); if(el) el.style.display=on?'block':'none'; }
+    function show(id, on=true){ const el=$(id); if(el) el.style.display='on?'block':'none'; }
 
     // —— (A/B 共用) 站點資料
     const STOP_DATA = {
@@ -293,7 +293,10 @@
         "屏東縣": ["九曲堂","六塊厝","屏東","歸來","麟洛","西勢","竹田","潮州","崁頂","南州","鎮安","林邊","佳冬","枋寮","加祿","內獅","枋山"],
         "宜蘭縣": ["頭城","頂埔","礁溪","四城","宜蘭","二結","羅東","冬山","新馬","蘇澳新","蘇澳"],
         "花蓮縣": ["東澳","南澳","和平","和仁","崇德","新城","景美","北埔","花蓮","吉安","志學","平和","壽豐","豐田","林榮新光","南平","鳳林","萬榮","光復","大富","富源","瑞穗","三民","玉里","東里","東竹"],
-ISO"台東縣": ["富里","池上","關山","月美","鹿野","山里","台東","知本","太麻里","金崙","瀧溪","大武"]
+        // *** 這裡是錯誤點 ***
+        // 舊的錯誤： ISO"台東縣": [...]
+        // 已修正：
+        "台東縣": ["富里","池上","關山","月美","鹿野","山里","台東","知本","太麻里","金崙","瀧溪","大武"]
       },
       "其他": {} // A 表單需要 '其他'，B 不需要
     };
@@ -614,59 +617,55 @@ ISO"台東縣": ["富里","池上","關山","月美","鹿野","山里","台東",
           
           // 序列化動態路線（這部分 JSON.stringify 後附加到 FormData）
           const routes = [];
-          document.querySelectorAll('.commute-route-block').forEach(routeEl => {
-            const routeId = routeEl.getAttribute('data-route-id');
+          document.querySelectorAll('.commute-route-block').forEach((routeEl, index) => {
+            const routeId = routeEl.getAttribute('data-route-id'); // `route${index+1}`
+            
+            // 從 FormData 讀取靜態名稱的資料
+            const repeatType = formData.get(`${routeId}_repeatType`);
+            const transportType = formData.get(`${routeId}_transportType`);
+            
             const routeData = {
               date: formData.get(`${routeId}_date`),
               startTime: formData.get(`${routeId}_startTime`),
               endTime: formData.get(`${routeId}_endTime`),
               repeat: {
-                type: formData.get(`${routeId}_repeatType`),
-                customInterval: formData.get(`${routeId}_customInterval`),
-                customDays: formData.getAll(`${routeId}_customDays`)
+                type: repeatType,
+                customInterval: (repeatType === 'custom') ? formData.get(`${routeId}_customInterval`) : null,
+                customDays: (repeatType === 'custom') ? formData.getAll(`${routeId}_customDays`) : []
               },
               transport: {
-                type: formData.get(`${routeId}_transportType`),
+                type: transportType,
                 // 下拉選單 (仿A)
-                start_system: $(`${routeId}_start_System`).value,
-                start_line: $(`${routeId}_start_Line`).value,
-                start_station: $(`${routeId}_start_Station`).value,
-                end_system: $(`${routeId}_end_System`).value,
-                end_line: $(`${routeId}_end_Line`).value,
-                end_station: $(`${routeId}_end_Station`).value,
+                start_system: (transportType !== 'other' && $(`${routeId}_start_System`)) ? $(`${routeId}_start_System`).value : null,
+                start_line: (transportType !== 'other' && $(`${routeId}_start_Line`)) ? $(`${routeId}_start_Line`).value : null,
+                start_station: (transportType !== 'other' && $(`${routeId}_start_Station`)) ? $(`${routeId}_start_Station`).value : null,
+                end_system: (transportType !== 'other' && $(`${routeId}_end_System`)) ? $(`${routeId}_end_System`).value : null,
+                end_line: (transportType !== 'other' && $(`${routeId}_end_Line`)) ? $(`${routeId}_end_Line`).value : null,
+                end_station: (transportType !== 'other' && $(`${routeId}_end_Station`)) ? $(`${routeId}_end_Station`).value : null,
                 // 其他
-                other_vehicle: formData.get(`${routeId}_other_vehicle`),
-                other_start: formData.get(`${routeId}_other_start`),
-                other_end: formData.get(`${routeId}_other_end`),
+                other_vehicle: (transportType === 'other') ? formData.get(`${routeId}_other_vehicle`) : null,
+                other_start: (transportType === 'other') ? formData.get(`${routeId}_other_start`) : null,
+                other_end: (transportType === 'other') ? formData.get(`${routeId}_other_end`) : null,
               }
             };
             routes.push(routeData);
+            
+            // **移除**動態欄位，避免重複提交
+            // (這只是為了 FormData 的 "乾淨"，後端 GAS 也需要調整)
+            formData.delete(`${routeId}_date`);
+            formData.delete(`${routeId}_startTime`);
+            formData.delete(`${routeId}_endTime`);
+            formData.delete(`${routeId}_repeatType`);
+            formData.delete(`${routeId}_customInterval`);
+            formData.getAll(`${routeId}_customDays`).forEach(() => formData.delete(`${routeId}_customDays`));
+            formData.delete(`${routeId}_transportType`);
+            formData.delete(`${routeId}_other_vehicle`);
+            formData.delete(`${routeId}_other_start`);
+            formData.delete(`${routeId}_other_end`);
           });
           
           // 將動態的 JSON 數據作為一個字串附加到 FormData
           formData.append('commuteRoutes_json', JSON.stringify(routes));
-
-          // **移除**動態欄位，避免重複提交
-          routes.forEach((r, i) => {
-            const routeId = `route${i+1}`; // 假設 routeId 是 1-based
-            formData.delete(`${routeId}_date`);
-            // ... (刪除所有動態欄位) ...
-          });
-
-
-          // try{
-          //   // 暫停：顯示 payload
-          //   console.log("=== FormData 內容 ===");
-          //   for (let [key, value] of formData.entries()) {
-          //     if (value instanceof File) {
-          //       console.log(key, "(File)", value.name);
-          //     } else {
-          //       console.log(key, value);
-          //     }
-          //   }
-          //   alert('已暫停，請檢查 Console。後端需修改才能接收 FormData。');
-          //   return; 
-          // } catch (err) { /* ... */ }
 
           try{
             // **重要**：不再使用 JSON，而是直接傳送 FormData
@@ -699,11 +698,24 @@ ISO"台東縣": ["富里","池上","關山","月美","鹿野","山里","台東",
       
       if(hasConsentB()) goForm(); else goConsent();
     }
-
-    async function initRoleC(){
-      // ... (C 角色邏輯，未修改) ...
+async function initRoleC(){
+      show('roleC', true);
+      $('cName').textContent=currentProfile.displayName;
+      if(!orderId){ showError('缺少 orderId'); return; }
+      try{
+        const payload={ action:'cEnterFromShareLink', oaUserId: currentProfile.userId, name: currentProfile.displayName, orderId };
+        const res=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        const json=await res.json();
+        if(json.status!=='success') throw new Error(json.message||'failed');
+        const o=json.order;
+        $('cOrder').innerHTML=`
+          <p>訂單編號：${o.orderId}</p>
+          <p>開單人：${o.aName}</p>
+          <p>起點：${o.fromStation}</p>
+          <p>終點：${o.toStation}</p>
+          <p>備註：${o.note||''}</p>`;
+      }catch(err){ showError('載入訂單失敗：'+err.message); }
     }
-
     main().catch(err=>{ $('loading').style.display='none'; showError('初始化失敗：'+err.message); });
   </script>
 </body>
