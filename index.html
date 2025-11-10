@@ -11,7 +11,6 @@
     label{display:block;margin:8px 0}
     input,select,textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--bd);border-radius:10px}
     input[type="file"]{padding:5px}
-    /* 點 2：讓 radio/checkbox 跟文字並排 */
     input[type="radio"], input[type="checkbox"]{width:auto}
     .radio-label{display:inline-block; margin:0 10px 0 2px; font-weight:normal;}
 
@@ -40,7 +39,6 @@
     .repetition-controls {border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; margin-top: 8px;}
     .custom-repeat-options { display: none; background: #fafafa; padding: 10px; border-radius: 6px; margin-top: 10px; }
     
-    /* 點 3：摘要樣式 */
     .repetition-summary { margin-top: 10px; padding: 10px; background: #fff; border: 1px dashed #007bff; border-radius: 6px; display: none; }
     .repetition-summary p { margin:0; font-weight:bold; color: #007bff; }
     .repetition-summary small { color: #333; }
@@ -51,17 +49,123 @@
   <div id="error"></div>
 
   <section id="roleAConsent" style="display:none">
-    </section>
+    <h2>使用條款與隱私告知</h2>
+    <div class="card" style="max-height:42vh; overflow:auto">
+      <h3 style="margin:0 0 8px">請閱讀以下內容</h3>
+      <ul style="margin-left:18px">
+        <li>《郵政法》：嚴禁托運任何具通信性質之物品（書信、明信片、文件、合約、發票、單據…）。違規由 A 自負，平台得停權。</li>
+        <li>個資與隱私（符合《個資法》）<br>
+          蒐集：姓名、電話、位置。<br>
+          目的：媒合、送貨、收款。<br>
+          分享對象：A 可見 B 資訊；C 可見 B 位置。<br>
+          保存期限：達成目的後刪除或去識別化。
+        </li>
+        <li>禁止站內營業行為；平台不經手運費。建議現金結清；若採轉帳，B 自行承擔確認風險。</li>
+        <li>食安與法規遵循：不得託運違禁品、危險品或法規限制物品。</li>
+        <li>夜間安全規則：建議交/到貨點選擇「24 小時超商門口」或「有警衛大樓門口」。B 得依自身安全判斷單方取消且不列入爽約。</li>
+        <li>大眾運輸誤點風險：B 可能搭乘大眾運輸，時間恐受影響。</li>
+        <li>責任限制：除非因平台重大過失，平台不負賠償責任。</li>
+        <li>C 收貨失敗時，由 B 主動聯繫 A 協議後續處理。</li>
+        <li><b>如果 C 未如約取貨，A 的運費不會退。</b></li>
+        <li>Linebot 會廣播媒合所需之訂單資訊與收款方式（A/C）。</li>
+      </ul>
+    </div>
+    <div class="card">
+      <label><input type="checkbox" id="consent_chk1"> 我了解並遵守《郵政法》限制。</label>
+      <label><input type="checkbox" id="consent_chk2"> 我同意個資蒐集/利用與分享之說明。</label>
+      <label><input type="checkbox" id="consent_chk3"> 我了解平台不經手運費與責任限制。</label>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="btnConsentAgree" disabled>同意</button>
+        <button id="btnConsentCancel" style="border-color:#c00;color:#c00">不同意</button>
+      </div>
+      <small>請勾選以上三項以啟用「同意」按鈕。</small>
+    </div>
+  </section>
 
   <section id="roleA" style="display:none">
-    </section>
+    <h2>建立訂單</h2>
+    <p>您好，<b id="aName"></b></p>
+    <form id="formA" class="card">
+      <h3>訂單內容</h3>
+      <label>貨物描述（特大/重/長請註明）
+        <textarea name="itemDesc" rows="3" placeholder="例如：鞋盒一個、約 2kg，長 40cm" required></textarea>
+      </label>
+      <fieldset class="card fromWrap" style="border:none">
+        <legend><b>交貨點（起點）</b></legend>
+        <div class="grid g2">
+          <label>系統 <select id="fromSystem" required></select> </label>
+          <label>路線 <select id="fromLine"></select> </label>
+        </div>
+        <div class="grid g2">
+          <label>站點 <select id="fromStation"></select> </label>
+          <label>詳細位置（選填） <input id="fromDetail" placeholder="例：超商門口、東側出口 1 號、管理室前"> </label>
+        </div>
+        <div class="grid g2">
+          <label>交貨時間 <select id="pickupTime"></select> </label>
+          <div></div>
+        </div>
+        <small>夜間建議選「超商門口 / 有警衛大樓門口」。送貨人如判斷不安全有權取消且不記爽約。</small>
+      </fieldset>
+      <fieldset class="card toWrap" style="border:none">
+        <legend><b>到貨點（終點）</b></legend>
+        <div class="grid g2">
+          <label>系統 <select id="toSystem" required></select> </label>
+          <label>路線 <select id="toLine"></select> </label>
+        </div>
+        <div class="grid g2">
+          <label>站點 <select id="toStation"></select> </label>
+          <label>詳細位置（選填） <input id="toDetail" placeholder="例：1 號出口警衛室前、某社區大門口"> </label>
+        </div>
+        <div class="grid g2">
+          <label>期望送達時間 <select id="deliveryTime"></select> </label>
+          <div></div>
+        </div>
+        <small>以接單人方便的時間為主；若接單者過少，平台將通知協調時間。</small>
+      </fieldset>
+      <div class="grid g2">
+        <label>收貨人稱謂 <input name="receiverTitle" placeholder="例：王小姐 / 張先生" required> </label>
+        <label>收貨人電話 <input name="receiverPhone" inputmode="tel" placeholder="例：0912345678" required> </label>
+      </div>
+      <div class="card" style="background:#fafafa">
+        <h4>運費與付款</h4>
+        <label><input type="radio" name="payer" value="A" checked> 運費由 A 付款</label>
+        <label><input type="radio" name="payer" value="C"> 運費由 C 付款</label>
+        <div class="grid g2" style="margin-top:8px">
+          <label>基礎運費（固定） <input id="baseFare" value="100" readonly> </label>
+          <label>小費（可選，整數） <input id="tip" type="number" min="0" step="10" placeholder="0"> </label>
+        </div>
+        <div style="margin-top:6px">預估應付：<b id="farePreview">100</b> 元</div>
+        <small>平台不經手款項，建議現金結清。</small>
+      </div>
+      <label>備註 <textarea name="note" rows="3" placeholder="例如：易碎、請直立；到站請先致電收貨人"></textarea> </label>
+      <button type="submit">送出訂單</button>
+    </form>
+    <div id="aResult" class="card" style="display:none">
+      <p>訂單編號：<span id="orderId"></span></p>
+      <p>給 C 的連結：</p>
+      <input id="shareUrl" readonly>
+      <button id="copyBtn">複製連結</button>
+    </div>
+  </section>
 
   <section id="roleB" style="display:none">
     <h2>GIGER 夥伴設定</h2>
     <p>您好，<b id="bName"></b></p>
 
     <div id="roleBConsent">
+      <div class="card" style="max-height:42vh; overflow:auto">
+        <h3 style="margin:0 0 8px">請詳閱 GIGER 夥伴條款</h3>
+        </div>
+      <div class="card">
+        <label><input type="checkbox" id="b_consent_chk1"> 我確認我已年滿 18 歲，並提供真實資料。</label>
+        <label><input type="checkbox" id="b_consent_chk2"> 我已詳閱並同意上述所有隱私權與個資條款。</label>
+        <label><input type="checkbox" id="b_consent_chk3"> 我已了解付款風險、賠償責任與位置分享機制。</label>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="btnBConsentAgree" disabled>同意並開始設定</button>
+          <button id="btnBConsentCancel" style="border-color:#c00;color:#c00">不同意</button>
+        </div>
       </div>
+    </div>
 
     <form id="formB" class="card" style="display:none">
       <h3>1. 實名認證 (KYC)</h3>
@@ -101,7 +205,10 @@
   </section>
 
   <section id="roleC" style="display:none">
-    </section>
+    <h2>訂單資訊</h2>
+    <p>您好，<b id="cName"></b></p>
+    <div id="cOrder" class="card">載入中...</div>
+  </section>
 
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -126,7 +233,6 @@
     
     function show(id, on=true){ const el=$(id); if(el) el.style.display = on ? 'block' : 'none'; }
 
-    // 點 1：日期格式化 (接受 date 物件)
     function getTodayYYYYMMDD(separator = '/', dateObj = null) {
         const d = dateObj || new Date();
         const y = d.getFullYear();
@@ -190,9 +296,9 @@
     }
 
     // —— (A) 專用函式
-    function getPlaceSummary(prefix){ /* ... A 專用 ... */ }
-    function fillTimeSelect(sel, withASAP=false){ /* ... A 專用 ... */ }
-    function setupFarePreview(){ /* ... A 專用 ... */ }
+    function getPlaceSummary(prefix){ /* ... A ... */ }
+    function fillTimeSelect(sel, withASAP=false){ /* ... A ... */ }
+    function setupFarePreview(){ /* ... A ... */ }
 
     // —— LIFF 主流程
     let currentProfile=null, role=null, orderId=null;
@@ -214,23 +320,25 @@
       else if(role==='C'){ initRoleC(); }
     }
 
-    function initRoleA(){ /* ... A 角色初始化 ... */ }
+    function initRoleA(){ /* ... A ... */ }
 
     // === (B) 角色：函式 ===
     
-    let routeCounter = 0; // B 路線的唯一 ID 計數器
+    let routeCounter = 0; 
 
-    // 點 4：管理「新增路線」按鈕的顯隱
     function updateAddRouteButtonVisibility() {
       const count = $('commuteRoutesContainer').childElementCount;
       $('addRouteBtn').style.display = (count >= 3) ? 'none' : 'block';
     }
 
-    // 點 3：產生摘要
     function generateRecurrenceSummary(routeId) {
+        // *** 修正點 ***
+        // 抓取元素時，要確保 ID 正確
         const dateInput = $(`${routeId}_date`);
         const repeatSelect = $(`${routeId}_repeatType`);
         
+        if (!dateInput || !repeatSelect) return { summaryText: "初始化中...", nextDatesStr: "" };
+
         const controls = {
             date: dateInput.value,
             type: repeatSelect.value,
@@ -252,8 +360,14 @@
         const endDate = (controls.endType === 'on' && controls.endDate) ? new Date(controls.endDate) : null;
         const maxOccurrences = (controls.endType === 'after') ? controls.endOccurrences : Infinity;
         
-        const formatDate = (d) => getTodayYYYYMMDD('/', d);
+        const formatDate = (d) => getTodayYYYYMMDD('-', d); // 配合 date input 格式
         let occurrences = 0;
+
+        // 我們總是把 "今天" (選擇的日期) 當作第一次
+        if (endDate && currentDate > endDate) { /* 起始日就在結束日之後 */ } 
+        else if (occurrences < maxOccurrences) {
+          occurrences++; 
+        }
 
         switch (controls.type) {
             case 'none':
@@ -261,7 +375,7 @@
                 break;
             case 'daily':
                 summaryText = "每天";
-                for (let i = 0; i < 5 && occurrences < maxOccurrences; i++) {
+                while (nextDates.length < 5 && occurrences < maxOccurrences) {
                     currentDate.setDate(currentDate.getDate() + 1);
                     if (endDate && currentDate > endDate) break;
                     nextDates.push(formatDate(currentDate));
@@ -270,7 +384,7 @@
                 break;
             case 'weekly':
                 summaryText = `每週 (星期${dayNames[currentDate.getDay()]})`;
-                for (let i = 0; i < 5 && occurrences < maxOccurrences; i++) {
+                while (nextDates.length < 5 && occurrences < maxOccurrences) {
                     currentDate.setDate(currentDate.getDate() + 7);
                     if (endDate && currentDate > endDate) break;
                     nextDates.push(formatDate(currentDate));
@@ -302,14 +416,12 @@
             case 'custom':
                 const selectedDays = controls.days.map(d => `星期${dayNames[d]}`).join('、');
                 summaryText = `每 ${controls.interval} ${controls.unit === 'day' ? '天' : (controls.unit === 'week' ? '週' : '個月')} (於 ${selectedDays})`;
-                // 自訂的日期計算太複雜，僅顯示文字摘要
                 break;
         }
 
-        // 處理結束條件文字
         if (controls.type !== 'none') {
           if (controls.endType === 'on' && endDate) {
-              summaryText += `，直到 ${formatDate(endDate)} 停止`;
+              summaryText += `，直到 ${controls.endDate} 停止`;
           } else if (controls.endType === 'after') {
               summaryText += `，共 ${controls.endOccurrences} 次`;
           }
@@ -323,7 +435,6 @@
         return { summaryText, nextDatesStr };
     }
 
-    // 點 3：更新摘要 UI
     function updateSummaryUI(routeId) {
         const { summaryText, nextDatesStr } = generateRecurrenceSummary(routeId);
         const summaryEl = document.querySelector(`[data-route-id="${routeId}"] .repetition-summary`);
@@ -335,31 +446,29 @@
     }
 
 
-    // (B) 動態更新週期選項
     function updateRepetitionOptions(routeId) {
         const dateInput = $(`${routeId}_date`);
         const repeatSelect = $(`${routeId}_repeatType`);
         const weekdaySelector = document.querySelector(`[data-route-id="${routeId}"] .weekday-selector`);
         
+        if (!dateInput || !repeatSelect || !weekdaySelector) return;
+
         const dateStr = dateInput.value;
-        // 點 1：使用 YYYY-MM-DD 格式
         if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return; 
         
-        const date = new Date(dateStr); // YYYY-MM-DD 是 ISO 格式，可安全轉換
+        const date = new Date(dateStr); 
         if (isNaN(date.getTime())) return; 
 
-        const dayOfWeek = date.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+        const dayOfWeek = date.getDay();
         const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
         
         const currentValue = repeatSelect.value;
-        repeatSelect.innerHTML = ''; // 清空選項
+        repeatSelect.innerHTML = ''; 
         
-        // 基本選項
         repeatSelect.add(new Option('不重複', 'none'));
         repeatSelect.add(new Option('每天', 'daily'));
         repeatSelect.add(new Option(`每週 (星期${dayNames[dayOfWeek]})`, 'weekly'));
 
-        // 動態選項
         const isWeekday = (dayOfWeek > 0 && dayOfWeek < 6);
         const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
         if (isWeekday) {
@@ -377,11 +486,9 @@
             repeatSelect.value = 'none';
         }
 
-        // 更新並鎖定自訂星期
         const checkboxes = weekdaySelector.querySelectorAll('input[type="checkbox"]');
         checkboxes.forEach((chk, index) => {
             chk.disabled = false;
-            // 只有在自訂選單中，才預選
             if (repeatSelect.value !== 'custom') {
                  chk.checked = false;
             }
@@ -392,13 +499,10 @@
             }
         });
         
-        // 點 3：更新摘要
         updateSummaryUI(routeId);
     }
 
-    // (B) 新增一個「通勤路線」區塊
     function addNewCommuteRoute() {
-      // 點 4：檢查路線限制
       if ($('commuteRoutesContainer').childElementCount >= 3) {
           alert('通勤路線最多 3 條');
           return;
@@ -410,8 +514,7 @@
       div.className = 'commute-route-block';
       div.setAttribute('data-route-id', routeId);
       
-      // 點 1：改回 YYYY-MM-DD
-      const todayStr = getTodayYYYYMMDD('-');
+      const todayStr = getTodayYYYYMMDD('-'); // YYYY-MM-DD
 
       div.innerHTML = `
         <div class="grid" style="grid-template-columns: 1fr auto;">
@@ -421,20 +524,20 @@
         
         <div class="repetition-controls">
           <div class="grid g3">
-            <label>日期 <input type="date" class="route-date-input" name="${routeId}_date" value="${todayStr}"> </label>
+            <label>日期 <input type="date" class="route-date-input" id="${routeId}_date" name="${routeId}_date" value="${todayStr}"> </label>
             <label>開始時間 <input type="time" name="${routeId}_startTime" value="08:00"> </label>
             <label>結束時間 <input type="time" name="${routeId}_endTime" value="18:00"> </label>
           </div>
           <label>週期
-            <select name="${routeId}_repeatType" class="repeat-type-select">
-              </select>
+            <select name="${routeId}_repeatType" id="${routeId}_repeatType" class="repeat-type-select">
+            </select>
           </label>
           
           <div class="custom-repeat-options">
             <div class="grid g2">
-              <label>重複間隔 <input type="number" name="${routeId}_customInterval" value="1" min="1"> </label>
+              <label>重複間隔 <input type="number" id="${routeId}_customInterval" name="${routeId}_customInterval" value="1" min="1"> </label>
               <label>單位
-                <select name="${routeId}_customUnit">
+                <select name="${routeId}_customUnit" id="${routeId}_customUnit">
                   <option value="day">天</option>
                   <option value="week">週</option>
                   <option value="month">月</option>
@@ -458,13 +561,13 @@
             <div style="display:flex; align-items:center; gap: 5px;">
               <input type="radio" id="${routeId}_end_on" name="${routeId}_endType" value="on"> 
               <label for="${routeId}_end_on" class="radio-label" style="margin:0;">於</label>
-              <input type="date" name="${routeId}_endDate" value="${todayStr}" style="display:none; flex-grow: 1;">
+              <input type="date" name="${routeId}_endDate" id="${routeId}_endDate" value="${todayStr}" style="display:none; flex-grow: 1;">
               <span class="end-on-label" style="display:none;"> 停止</span>
             </div>
             <div style="display:flex; align-items:center; gap: 5px;">
               <input type="radio" id="${routeId}_end_after" name="${routeId}_endType" value="after">
               <label for="${routeId}_end_after" class="radio-label" style="margin:0;">重複</label>
-              <input type="number" name="${routeId}_endOccurrences" min="1" value="13" style="display:none; width: 80px;">
+              <input type="number" name="${routeId}_endOccurrences" id="${routeId}_endOccurrences" min="1" value="13" style="display:none; width: 80px;">
               <span class="end-after-label" style="display:none;"> 次</span>
             </div>
           </div>
@@ -496,7 +599,6 @@
                 <label>站點 <select id="${routeId}_start_Station"></select></label>
               </div>
             </fieldset>
-            
             <fieldset class="toWrap" style="border:none; padding: 5px;">
               <legend><b>終點</b></legend>
               <select id="${routeId}_end_System" style="display: none;"></select>
@@ -508,7 +610,12 @@
           </div>
 
           <div class="transport-other" style="display:none; background: #fff; padding: 10px; border-radius: 8px;">
+            <div class="grid g2">
+              <label>交通工具 <input name="${routeId}_other_vehicle" placeholder="機車 / 汽車"> </label>
+              <label>詳細起點 <input name="${routeId}_other_start" placeholder="例：台北 101"> </label>
             </div>
+            <label>詳細終點 <input name="${routeId}_other_end" placeholder="例：南港展覽館"> </label>
+          </div>
         </div>
       `;
       
@@ -516,32 +623,26 @@
       
       // === 綁定新建立的 DOM 事件 ===
       
-      // 1. 週期相關 (點 2, 3)
-      const dateInput = $(`${routeId}_date`);
       const repeatSelect = $(`${routeId}_repeatType`);
       const customOptions = div.querySelector('.custom-repeat-options');
       const repetitionControls = div.querySelector('.repetition-controls');
 
-      // 建立一個統一的更新函式
       const updateAllRepetition = () => {
-          updateRepetitionOptions(routeId); // 更新選項並鎖定
-          customOptions.style.display = (repeatSelect.value === 'custom') ? 'block' : 'none'; // 顯示/隱藏自訂
-          updateSummaryUI(routeId); // 更新摘要
+          updateRepetitionOptions(routeId); 
+          customOptions.style.display = (repeatSelect.value === 'custom') ? 'block' : 'none'; 
+          updateSummaryUI(routeId); 
       };
 
-      // 監聽所有週期相關的變動
       repetitionControls.addEventListener('change', (e) => {
-          // 只在 'change' 時觸發，避免 'input' 造成效能問題
           if (e.target.name && e.target.name.startsWith(routeId)) {
               updateAllRepetition();
           }
       });
       
-      // 2. 自訂結束時間 (點 2)
       const endRadios = div.querySelectorAll(`input[name="${routeId}_endType"]`);
-      const endDateInput = div.querySelector(`input[name="${routeId}_endDate"]`);
+      const endDateInput = $(`${routeId}_endDate`);
       const endOnLabel = div.querySelector(`.end-on-label`);
-      const endOccurrencesInput = div.querySelector(`input[name="${routeId}_endOccurrences"]`);
+      const endOccurrencesInput = $(`${routeId}_endOccurrences`);
       const endAfterLabel = div.querySelector(`.end-after-label`);
 
       endRadios.forEach(radio => {
@@ -555,7 +656,6 @@
           });
       });
 
-      // 3. 交通方式 (點 4)
       const transportSelect = div.querySelector('.transport-type-select');
       const dropdownContainer = div.querySelector('.transport-dropdowns');
       const otherContainer = div.querySelector('.transport-other');
@@ -586,17 +686,15 @@
         }
       });
 
-      // 4. 移除按鈕 (點 4)
       div.querySelector('.remove-route-btn').addEventListener('click', () => {
         if(confirm('確定要移除此路線嗎？')) {
           div.remove();
-          updateAddRouteButtonVisibility(); // 移除後，檢查是否要顯示「新增」按鈕
+          updateAddRouteButtonVisibility(); 
         }
       });
 
-      // 5. 首次載入時
-      updateAllRepetition(); // 立即更新一次週期選項和摘要
-      updateAddRouteButtonVisibility(); // 檢查按鈕狀態
+      updateAllRepetition(); 
+      updateAddRouteButtonVisibility(); 
     }
 
 
@@ -611,12 +709,10 @@
         $('addRouteBtn').addEventListener('click', addNewCommuteRoute);
         
         if ($('commuteRoutesContainer').childElementCount === 0) {
-          addNewCommuteRoute(); // 預設載入一條
+          addNewCommuteRoute(); 
         }
-        // 點 4：初始化按鈕狀態
         updateAddRouteButtonVisibility(); 
 
-        // 綁定 B 表單提交
         $('formB').addEventListener('submit', async (e) => {
           e.preventDefault();
           
@@ -628,7 +724,6 @@
           formData.append('profileName', currentProfile.displayName);
           formData.append('agreed', true);
           
-          // 序列化動態路線
           const routes = [];
           document.querySelectorAll('.commute-route-block').forEach((routeEl) => {
             const routeId = routeEl.getAttribute('data-route-id');
@@ -687,14 +782,43 @@
         });
       };
 
-      const goConsent = () => { /* ... B 條款 ... */ };
+      const goConsent = () => {
+        show('formB', false); show('roleBConsent', true);
+        const c1=$('b_consent_chk1'), c2=$('b_consent_chk2'), c3=$('b_consent_chk3'), btn=$('btnBConsentAgree');
+        function refresh(){ btn.disabled = !(c1.checked && c2.checked && c3.checked); }
+        [c1,c2,c3].forEach(x=>x.addEventListener('change', refresh)); refresh();
+        btn.addEventListener('click', ()=>{ setConsentB(); goForm(); });
+        $('btnConsentCancel').addEventListener('click', ()=>{
+          if(liff?.closeWindow) liff.closeWindow(); else location.href='https://line.me/R/';
+        });
+      };
       
       if(hasConsentB()) goForm(); else goConsent();
     }
 
-    async function initRoleC(){ /* ... C 角色 ... */ }
+    async function initRoleC(){
+      show('roleC', true);
+      $('cName').textContent=currentProfile.displayName;
+      if(!orderId){ showError('缺少 orderId'); return; }
+      try{
+        const payload={ action:'cEnterFromShareLink', oaUserId: currentProfile.userId, name: currentProfile.displayName, orderId };
+        const res=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        const json=await res.json();
+        if(json.status!=='success') throw new Error(json.message||'failed');
+        const o=json.order;
+        $('cOrder').innerHTML=`
+          <p>訂單編號：${o.orderId}</p>
+          <p>開單人：${o.aName}</p>
+          <p>起點：${o.fromStation}</p>
+          <p>終點：${o.toStation}</p>
+          <p>備註：${o.note||''}</p>`;
+      }catch(err){ showError('載入訂單失敗：'+err.message); }
+    }
 
-    main().catch(err=>{ $('loading').style.display='none'; showError('初始化失敗：'+err.message); });
+    main().catch(err=>{ 
+      $('loading').style.display='none'; 
+      showError('初始化失敗：'+err.message + ' (line: ' + err.stack + ')'); // 顯示更詳細的錯誤
+    });
   </script>
 </body>
 </html>
