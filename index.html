@@ -257,8 +257,7 @@
     function hasConsentB(){ try{ const raw=localStorage.getItem(CONSENT_KEY_B); return raw && JSON.parse(raw).agreed; }catch{ return false; } }
     function setConsentB(){ localStorage.setItem(CONSENT_KEY_B, JSON.stringify({agreed:true, ts:Date.now()})); }
     
-    function show(id, on=true){ const el=$(id); if(el) el.style.display='on?'block':'none'; }
-
+    function show(id, on=true){ const el=$(id); if(el) el.style.display = on ? 'block' : 'none'; }
     // —— (A/B 共用) 站點資料
     const STOP_DATA = {
       "台北捷運": {
