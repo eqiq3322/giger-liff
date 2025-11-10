@@ -5,7 +5,6 @@
   <title>GIGER LIFF</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    /* ... (CSS 樣式保持不變) ... */
     :root { --bd:#ddd; --muted:#666; --from:#f0f7ff; --to:#f7fff0; }
     body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC",sans-serif;padding:16px;line-height:1.5}
     h2{margin:0 0 8px} h3{margin:8px 0} h4{margin:8px 0}
@@ -45,10 +44,104 @@
   <div id="error"></div>
 
   <section id="roleAConsent" style="display:none">
-    </section>
+    <h2>使用條款與隱私告知</h2>
+    <div class="card" style="max-height:42vh; overflow:auto">
+      <h3 style="margin:0 0 8px">請閱讀以下內容</h3>
+      <ul style="margin-left:18px">
+        <li>《郵政法》：嚴禁托運任何具通信性質之物品（書信、明信片、文件、合約、發票、單據…）。違規由 A 自負，平台得停權。</li>
+        <li>個資與隱私（符合《個資法》）<br>
+          蒐集：姓名、電話、位置。<br>
+          目的：媒合、送貨、收款。<br>
+          分享對象：A 可見 B 資訊；C 可見 B 位置。<br>
+          保存期限：達成目的後刪除或去識別化。
+        </li>
+        <li>禁止站內營業行為；平台不經手運費。建議現金結清；若採轉帳，B 自行承擔確認風險。</li>
+        <li>食安與法規遵循：不得託運違禁品、危險品或法規限制物品。</li>
+        <li>夜間安全規則：建議交/到貨點選擇「24 小時超商門口」或「有警衛大樓門口」。B 得依自身安全判斷單方取消且不列入爽約。</li>
+        <li>大眾運輸誤點風險：B 可能搭乘大眾運輸，時間恐受影響。</li>
+        <li>責任限制：除非因平台重大過失，平台不負賠償責任。</li>
+        <li>C 收貨失敗時，由 B 主動聯繫 A 協議後續處理。</li>
+        <li><b>如果 C 未如約取貨，A 的運費不會退。</b></li>
+        <li>Linebot 會廣播媒合所需之訂單資訊與收款方式（A/C）。</li>
+      </ul>
+    </div>
+    <div class="card">
+      <label><input type="checkbox" id="consent_chk1"> 我了解並遵守《郵政法》限制。</label>
+      <label><input type="checkbox" id="consent_chk2"> 我同意個資蒐集/利用與分享之說明。</label>
+      <label><input type="checkbox" id="consent_chk3"> 我了解平台不經手運費與責任限制。</label>
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <button id="btnConsentAgree" disabled>同意</button>
+        <button id="btnConsentCancel" style="border-color:#c00;color:#c00">不同意</button>
+      </div>
+      <small>請勾選以上三項以啟用「同意」按鈕。</small>
+    </div>
+  </section>
 
   <section id="roleA" style="display:none">
-    </section>
+    <h2>建立訂單</h2>
+    <p>您好，<b id="aName"></b></p>
+    <form id="formA" class="card">
+      <h3>訂單內容</h3>
+      <label>貨物描述（特大/重/長請註明）
+        <textarea name="itemDesc" rows="3" placeholder="例如：鞋盒一個、約 2kg，長 40cm" required></textarea>
+      </label>
+      <fieldset class="card fromWrap" style="border:none">
+        <legend><b>交貨點（起點）</b></legend>
+        <div class="grid g2">
+          <label>系統 <select id="fromSystem" required></select> </label>
+          <label>路線 <select id="fromLine"></select> </label>
+        </div>
+        <div class="grid g2">
+          <label>站點 <select id="fromStation"></select> </label>
+          <label>詳細位置（選填） <input id="fromDetail" placeholder="例：超商門口、東側出口 1 號、管理室前"> </label>
+        </div>
+        <div class="grid g2">
+          <label>交貨時間 <select id="pickupTime"></select> </label>
+          <div></div>
+        </div>
+        <small>夜間建議選「超商門口 / 有警衛大樓門口」。送貨人如判斷不安全有權取消且不記爽約。</small>
+      </fieldset>
+      <fieldset class="card toWrap" style="border:none">
+        <legend><b>到貨點（終點）</b></legend>
+        <div class="grid g2">
+          <label>系統 <select id="toSystem" required></select> </label>
+          <label>路線 <select id="toLine"></select> </label>
+        </div>
+        <div class="grid g2">
+          <label>站點 <select id="toStation"></select> </label>
+          <label>詳細位置（選填） <input id="toDetail" placeholder="例：1 號出口警衛室前、某社區大門口"> </label>
+        </div>
+        <div class="grid g2">
+          <label>期望送達時間 <select id="deliveryTime"></select> </label>
+          <div></div>
+        </div>
+        <small>以接單人方便的時間為主；若接單者過少，平台將通知協調時間。</small>
+      </fieldset>
+      <div class="grid g2">
+        <label>收貨人稱謂 <input name="receiverTitle" placeholder="例：王小姐 / 張先生" required> </label>
+        <label>收貨人電話 <input name="receiverPhone" inputmode="tel" placeholder="例：0912345678" required> </label>
+      </div>
+      <div class="card" style="background:#fafafa">
+        <h4>運費與付款</h4>
+        <label><input type="radio" name="payer" value="A" checked> 運費由 A 付款</label>
+        <label><input type="radio" name="payer" value="C"> 運費由 C 付款</label>
+        <div class="grid g2" style="margin-top:8px">
+          <label>基礎運費（固定） <input id="baseFare" value="100" readonly> </label>
+          <label>小費（可選，整數） <input id="tip" type="number" min="0" step="10" placeholder="0"> </label>
+        </div>
+        <div style="margin-top:6px">預估應付：<b id="farePreview">100</b> 元</div>
+        <small>平台不經手款項，建議現金結清。</small>
+      </div>
+      <label>備註 <textarea name="note" rows="3" placeholder="例如：易碎、請直立；到站請先致電收貨人"></textarea> </label>
+      <button type="submit">送出訂單</button>
+    </form>
+    <div id="aResult" class="card" style="display:none">
+      <p>訂單編號：<span id="orderId"></span></p>
+      <p>給 C 的連結：</p>
+      <input id="shareUrl" readonly>
+      <button id="copyBtn">複製連結</button>
+    </div>
+  </section>
 
   <section id="roleADashboard" style="display:none">
     <h2>我的寄件</h2>
@@ -60,11 +153,91 @@
       </div>
     </div>
   </section>
+  
   <section id="roleB" style="display:none">
-    </section>
+    <h2>GIGER 夥伴設定</h2>
+    <p>您好，<b id="bName"></b></p>
+    <div id="roleBConsent">
+      <div class="card" style="max-height:42vh; overflow:auto">
+        <h3 style="margin:0 0 8px">請詳閱 GIGER 夥伴條款</h3>
+        <h4>1. 夥伴資格 (KYC)</h4>
+        <ul style="margin-left:18px">
+          <li>您必須年滿 18 歲。</li>
+          <li>您必須提供真實姓名、可驗證的手機號碼、以及與真實姓名同名的銀行帳戶（用於收款）。</li>
+        </ul>
+        <h4>2. 隱私權與個資告知 (符合《個資法》)</h4>
+        <ul style="margin-left:18px">
+          <li><b>蒐集資料</b>：姓名、電話、銀行帳戶、銀行帳戶照片、即時位置資訊。</li>
+          <li><b>蒐集目的</b>：身份驗證 (KYC)、訂單媒合、A/C 聯繫、C 方追蹤貨物位置、運費支付。</li>
+          <li><b>分享對象</b>：
+            <ul>
+              <li>A (寄件人) 將在媒合成功後看到您的稱謂與聯絡資訊。</li>
+              <li>C (收件人) 將在您按下「啟程」後，看到您的即時位置，直到「交付完成」或 30 分鐘後。</li>
+            </ul>
+          </li>
+          <li><b>保存期間</b>：依《個資法》規定，於目的消失後刪除或去識別化。</li>
+        </ul>
+        <h4>3. 付款與風險</h4>
+        <ul style="margin-left:18px">
+          <li>平台建議以<b>現金收款</b>。</li>
+          <li><b>付款風險告知</b>：若您（B）同意接受 A/C 的轉帳，您必須自行承擔確認入帳的責任。<b>切勿僅憑對方出示的「轉帳截圖」交貨</b>，請務必開啟自己的網路銀行或郵局APP，確認款項「確實入帳」後，才可交付物品或啟程。若因未確實核對而受騙，平台概不負責。</li>
+        </ul>
+        <h4>4. 責任與賠償</h4>
+        <ul style="margin-left:18px">
+          <li>您有妥善保管托運物品的義務。</li>
+          <li>若因您的過失導致運送過程物品遺失或毀損，您需負擔相應的賠償與法律責任，平台亦有權將您停權。</li>
+        </ul>
+        <h4>5. 即時位置資訊告知</h4>
+        <ul style="margin-left:18px">
+          <li>為履行送貨義務及確保 C 能準確取貨，<b>您按下「啟程」後，平台將蒐集您的即時位置資訊，並分享給收貨人 C</b>。</li>
+          <li>此資訊將在交付完成或 30 分鐘後自動停止分享與刪除。</li>
+        </ul>
+      </div>
+      <div class="card">
+        <label><input type="checkbox" id="b_consent_chk1"> 我確認我已年滿 18 歲，並提供真實資料。</label>
+        <label><input type="checkbox" id="b_consent_chk2"> 我已詳閱並同意上述所有隱私權與個資條款。</label>
+        <label><input type="checkbox" id="b_consent_chk3"> 我已了解付款風險、賠償責任與位置分享機制。</label>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="btnBConsentAgree" disabled>同意並開始設定</button>
+          <button id="btnBConsentCancel" style="border-color:#c00;color:#c00">不同意</button>
+        </div>
+      </div>
+    </div>
+    <form id="formB" class="card" style="display:none">
+      <h3>1. 實名認證 (KYC)</h3>
+      <div class="grid g2">
+        <label>真實姓名
+          <input name="name" placeholder="請填入與銀行帳戶同名" required>
+        </label>
+        <label>手機號碼
+          <input name="phone" inputmode="tel" placeholder="用於 Line 驗證与聯繫" required>
+        </label>
+      </div>
+      <label>銀行帳號（用於收款）
+        <input name="bankAccount" placeholder="例：822 (中信) 1234567890" required>
+      </label>
+      <label>銀行帳戶照片 (存摺封面)
+        <input type="file" name="bankPhoto" accept="image/*" required>
+        <small>請上傳包含「戶名」與「帳號」的清晰照片。</small>
+      </label>
+      <label><input type="checkbox" name="nameMatch" required> 我確認此銀行帳戶戶名與上述真實姓名相同。</label>
+      <hr style="border:0; border-top:1px solid var(--bd); margin:20px 0">
+      <h3>2. 通勤路線與時間</h3>
+      <p style="margin:0"><small>請設定您可接單的通勤路線與時段。您可以新增多條不同的路線（例如：上班、下班、週末）。</small></p>
+      <div id="commuteRoutesContainer">
+        </div>
+      <button type="button" id="addRouteBtn" style="margin-top:12px; width:100%; background:#f0f7ff; border-color:#007bff; color:#007bff"><b>+ 新增通勤路線</b></button>
+      <hr style="border:0; border-top:1px solid var(--bd); margin:20px 0">
+      <button type="submit" style="background:#007bff; color:#fff">儲存設定</button>
+    </form>
+    <div id="bResult" class="card" style="display:none">設定已儲存，審核中...</div>
+  </section>
 
   <section id="roleC" style="display:none">
-    </section>
+    <h2>訂單資訊</h2>
+    <p>您好，<b id="cName"></b></p>
+    <div id="cOrder" class="card">載入中...</div>
+  </section>
 
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
@@ -98,15 +271,110 @@
     }
 
     // —— (A/B 共用) 站點資料
-    const STOP_DATA = { /* ... (站點資料保持不變) ... */ };
+    const STOP_DATA = {
+      "台北捷運": {
+        "淡水信義線 (R)": ["象山","台北101/世貿","信義安和","大安","大安森林公園","東門","中正紀念堂","台大醫院","台北車站","中山","雙連","民權西路","圓山","劍潭","士林","芝山","明德","石牌","唭哩岸","奇岩","北投","復興崗","忠義","關渡","竹圍","紅樹林","淡水"],
+        "松山新店線 (G)": ["新店","新店區公所","七張","小碧潭","大坪林","景美","萬隆","公館","台電大樓","古亭","中正紀念堂","小南門","西門","北門","中山","松江南京","南京復興","台北小巨蛋","南京三民","松山"],
+        "中和新蘆線 (O)": ["南勢角","景安","永安市場","頂溪","古亭","東門","忠孝新生","松江南京","行天宮","中山國小","民權西路","大橋頭","台北橋","菜寮","三重","先嗇宮","頭前庄","新莊","輔大","丹鳳","迴龍","三重國小","三和國中","徐匯中學","三民高中","蘆洲"],
+        "板南線 (BL)": ["頂埔","永寧","土城","海山","亞東醫院","府中","板橋","新埔","江子翠","龍山寺","西門","台北車站","善導寺","忠孝新生","忠孝復興","忠孝敦化","國父紀念館","市政府","永春","後山埤","昆陽","南港","南港展覽館"],
+        "文湖線 (BR)": ["動物園","木柵","萬芳社區","萬芳醫院","辛亥","麟光","六張犁","科技大樓","大安","忠孝復興","南京復興","中山國中","松山機場","大直","劍南路","西湖","港墘","文德","內湖","大湖公園","葫洲","東湖","南港軟體園區","南港展覽館"],
+        "環狀線 (Y)": ["新北產業園區","幸福","新北輔大","頭前庄","中原","橋和","中和","景平","景安","中和高中","秀朗橋"]
+      },
+      "高雄捷運": {
+        "紅線": ["小港","高雄國際機場","草衙","前鎮高中","凱旋","獅甲","三多商圈","中央公園","美麗島","高雄車站","後驛","凹子底","巨蛋","生態園區","左營","世運"],
+        "橘線": ["西子灣","鹽埕埔","市議會","美麗島","信義國小","文化中心","五塊厝","技擊館","衛武營","鳳山西","鳳山","大東","鳳山國中","大寮"]
+      },
+      "高鐵": { "全線": ["南港","台北","板橋","桃園","新竹","苗栗","台中","彰化","雲林","嘉義","台南","左營"] },
+      "台鐵（依縣市）": {
+        "基隆市": ["基隆","三坑","八堵","七堵","百福","暖暖"],
+        "新北市": ["汐止","汐科","五堵","四腳亭","瑞芳","猴硐","三貂嶺","牡丹","雙溪","貢寮","福隆","石城","大里","大溪","龜山","海科館","八斗子"],
+        "台北市": ["南港","松山","台北","萬華"],
+        "桃園市": ["桃園","內壢","中壢","埔心","楊梅","富岡","新富"],
+        "新竹縣": ["湖口","新豐","竹北","北新竹","千甲","新莊","竹中","六家","上員","竹東","橫山","九讚頭","合興","富貴","內灣"],
+        "新竹市": ["新竹","香山"],
+        "苗栗縣": ["崎頂","竹南","造橋","豐富","苗栗","南勢","銅鑼","三義","日南","大山","後龍","龍港","白沙屯","新埔","通霄","苑裡"],
+        "台中市": ["大甲","清水","沙鹿","龍井","大肚","追分","烏日","新烏日","台中","太原","豐原","潭子","大慶"],
+        "彰化縣": ["彰化","花壇","大村","員林","永靖","社頭","田中","二水"],
+        "南投縣": ["源泉","濁水","龍泉","集集","水里","車埕"],
+        "雲林縣": ["林內","石榴","斗六","斗南"],
+        "嘉義市": ["嘉北","嘉義"],
+        "嘉義縣": ["大林","民雄","水上","南靖"],
+        "台南市": ["後壁","新營","柳營","林鳳營","隆田","拔林","善化","新市","永康","台南","保安","仁德","長榮大學","沙崙","大湖","路竹"],
+        "高雄市": ["岡山","橋頭","楠梓","新左營","左營","內惟","鼓山","美術館","三塊厝","高雄","鳳山"],
+        "屏東縣": ["九曲堂","六塊厝","屏東","歸來","麟洛","西勢","竹田","潮州","崁頂","南州","鎮安","林邊","佳冬","枋寮","加祿","內獅","枋山"],
+        "宜蘭縣": ["頭城","頂埔","礁溪","四城","宜蘭","二結","羅東","冬山","新馬","蘇澳新","蘇澳"],
+        "花蓮縣": ["東澳","南澳","和平","和仁","崇德","新城","景美","北埔","花蓮","吉安","志學","平和","壽豐","豐田","林榮新光","南平","鳳林","萬榮","光復","大富","富源","瑞穗","三民","玉里","東里","東竹"],
+        "台東縣": ["富里","池上","關山","月美","鹿野","山里","台東","知本","太麻里","金崙","瀧溪","大武"]
+      },
+      "其他": {} 
+    };
 
     // —— (A/B 共用) 初始化三層下拉
-    function initStationSelectors(prefix){ /* ... (函式保持不變) ... */ }
+    function initStationSelectors(prefix){
+      const sysSel = $(prefix+'System');
+      const lineSel = $(prefix+'Line');
+      const staSel = $(prefix+'Station');
+      if (!sysSel || !lineSel || !staSel) return; 
+      sysSel.innerHTML = '';
+      Object.keys(STOP_DATA).forEach(sys=>{
+        if (role === 'B' && sys === '其他') return;
+        const o=document.createElement('option'); o.value=sys; o.textContent=sys; sysSel.appendChild(o);
+      });
+      function refreshLines(){
+        const sys = sysSel.value;
+        lineSel.innerHTML=''; staSel.innerHTML='';
+        const lines = STOP_DATA[sys] ? Object.keys(STOP_DATA[sys]) : [];
+        lines.forEach(line=>{
+          const o=document.createElement('option'); o.value=line; o.textContent=line; lineSel.appendChild(o);
+        });
+        refreshStations();
+      }
+      function refreshStations(){
+        const sys=sysSel.value, line=lineSel.value;
+        staSel.innerHTML='';
+        (STOP_DATA[sys] && STOP_DATA[sys][line] || []).forEach(st=>{
+          const o=document.createElement('option'); o.value=st; o.textContent=st; staSel.appendChild(o);
+        });
+      }
+      sysSel.addEventListener('change', refreshLines);
+      lineSel.addEventListener('change', refreshStations);
+      refreshLines();
+    }
 
     // —— (A) 專用函式
-    function getPlaceSummary(prefix){ /* ... (函式保持不變) ... */ }
-    function fillTimeSelect(sel, withASAP=false){ /* ... (函式保持不變) ... */ }
-    function setupFarePreview(){ /* ... (函式保持不變) ... */ }
+    function getPlaceSummary(prefix){
+      const sys=$(prefix+'System').value;
+      const line=$(prefix+'Line').value;
+      const station=$(prefix+'Station').value;
+      const detail=$(prefix==='from'? 'fromDetail':'toDetail');
+      const extra=$(detail)?$(detail).value.trim():'';
+      const text = `${sys} / ${line} / ${station}${ extra? (' / ' + extra): '' }`;
+      return {system:sys,line,station,detail:extra,text};
+    }
+    
+    function fillTimeSelect(sel, withASAP=false){
+      const now=new Date();
+      const end=new Date(); end.setHours(23,45,0,0);
+      const opts=[];
+      if(withASAP){ opts.push({v:'ASAP', t:'盡快（30 分鐘內）'}); }
+      const start=new Date(now);
+      const m=now.getMinutes();
+      const add= (15 - (m % 15)) % 15;
+      start.setMinutes(m + (add===0?15:add),0,0);
+      for(let t=new Date(start); t<=end; t=new Date(t.getTime()+15*60000)){
+        const hh=String(t.getHours()).padStart(2,'0');
+        const mm=String(t.getMinutes()).padStart(2,'0');
+        opts.push({v:`${hh}:${mm}`, t:`今天 ${hh}:${mm}`});
+      }
+      sel.innerHTML='';
+      opts.forEach(o=>{ const opt=document.createElement('option'); opt.value=o.v; opt.textContent=o.t; sel.appendChild(opt); });
+    }
+
+    function setupFarePreview(){
+      const base=$('baseFare'), tip=$('tip'), out=$('farePreview');
+      function calc(){ const t=(parseInt(base.value,10)||0)+(parseInt(tip.value,10)||0); out.textContent=t; }
+      tip.addEventListener('input', calc); calc();
+    }
 
     // —— LIFF 主流程
     let currentProfile=null, role=null, orderId=null;
@@ -115,7 +383,6 @@
       const params=new URLSearchParams(location.search);
       role=params.get('role')||'A';
       orderId=params.get('orderId')||null;
-      // === 步驟 2. 偵測 'view' 參數 ===
       const view = params.get('view') || null; 
 
       await liff.init({ liffId: LIFF_ID });
@@ -124,34 +391,31 @@
       
       $('loading').style.display='none'; 
       
-      // === 步驟 2. 修改 main 函式的邏輯 ===
       if(role==='A'){ 
           if (view === 'dashboard') {
-              initRoleADashboard(); // (新功能) A 的儀表板
+              initRoleADashboard();
           } else if (orderId) {
-              // A 查看特定訂單 (未來功能)
-              // 暫時先導向建立頁面
+              // 暫時先導向建立頁面 (未來可改為 A 查看特定訂單)
               initRoleACreate(); 
           } else {
-              initRoleACreate(); // (原 initRoleA) A 的建立訂單頁面
+              initRoleACreate(); // A 建立訂單頁面
           }
       }
       else if(role==='B'){ 
           if (view === 'dashboard') {
-              // initRoleBDashboard(); // (未來功能) B 的儀表板
+              // initRoleBDashboard(); // B 的儀表板 (下一步)
           } else if (params.get('action') === 'accept' && orderId) {
-              // initRoleBAccept(orderId); // (未來功能) B 的接單頁
+              // initRoleBAccept(orderId); // B 的接單頁 (下一步)
           } else {
-              initRoleBCreate(); // (原 initRoleB) B 的註冊頁面
+              initRoleBCreate(); // B 的註冊頁面
           }
       }
       else if(role==='C'){ 
           initRoleC(); 
       }
-      // === (結束) 步驟 2 ===
     }
 
-    // === 步驟 3. A 的「建立訂單」 (函式改名) ===
+    // === A 的「建立訂單」 (函式改名) ===
     function initRoleACreate(){ // (原 initRoleA)
       const goForm = ()=>{
         show('roleAConsent', false); show('roleA', true);
@@ -165,10 +429,39 @@
         const form=$('formA');
         form.addEventListener('submit', async (e)=>{
           e.preventDefault();
-          // ... (A 建立訂單的提交邏輯) ...
+          const from=getPlaceSummary('from'), to=getPlaceSummary('to');
+          const fd=new FormData(form);
+          const payer=(fd.get('payer')||'A');
+          const baseFare=100, tip=parseInt(($('tip').value||'0'),10)||0;
+          const payload={
+            action:'registerOrderFromA',
+            oaUserId: currentProfile.userId,
+            name: currentProfile.displayName,
+            itemDesc: fd.get('itemDesc'),
+            fromStation: from.text,
+            toStation: to.text,
+            fromSystem: from.system, fromLine: from.line, fromStationName: from.station, fromDetail: from.detail,
+            toSystem: to.system, toLine: to.line, toStationName: to.station, toDetail: to.detail,
+            pickupTime: $('pickupTime').value,
+            deliveryTime: $('deliveryTime').value,
+            receiverTitle: fd.get('receiverTitle'),
+            receiverPhone: fd.get('receiverPhone'),
+            farePayer: payer, baseFare, tip, totalFare: baseFare+tip,
+            agreed: true
+          };
+          try{
+            const res=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+            const json=await res.json();
+            if(json.status!=='success') throw new Error(json.message||'提交失敗');
+            $('orderId').textContent=json.orderId;
+            const shareUrl=`https://liff.line.me/${LIFF_ID}?role=C&orderId=${encodeURIComponent(json.orderId)}`;
+            $('shareUrl').value=shareUrl;
+            $('aResult').style.display='block';
+          }catch(err){ showError('送出失敗：'+err.message); }
         });
         $('copyBtn').addEventListener('click', async ()=>{
-          // ... (A 複製連結的邏輯) ...
+          try{ await navigator.clipboard.writeText($('shareUrl').value); alert('已複製連結'); }
+          catch{ alert('複製失敗，請長按手動複製'); }
         });
       };
       const goConsent = ()=>{
@@ -184,7 +477,7 @@
       if(hasConsentA()) goForm(); else goConsent();
     }
 
-    // === 步驟 1. A 的「寄件儀表板」(新函式) ===
+    // === A 的「寄件儀表板」(新函式) ===
     async function initRoleADashboard() {
       try {
         show('roleADashboard', true);
@@ -210,10 +503,8 @@
           return;
         }
 
-        // 動態渲染訂單列表
         let html = '';
         json.orders.forEach(order => {
-          // (後端 GAS 需回傳 orderId, itemDesc, fromStation, toStation, statusText)
           html += `
             <div class="card" style="margin-top:8px; background:#f9f9f9;">
               <p style="margin:0; font-size:0.9em; color:#666;">訂單 #${order.orderId || 'N/A'}</p>
@@ -227,11 +518,9 @@
         });
         listContainer.innerHTML = html;
 
-        // 綁定「查看詳情」按鈕事件
         document.querySelectorAll('.view-a-order-btn').forEach(btn => {
           btn.addEventListener('click', () => {
             const oid = btn.getAttribute('data-orderid');
-            // 暫時先讓 A 查看 C 的頁面
             const cLink = `https://liff.line.me/${LIFF_ID}?role=C&orderId=${oid}`;
             if (liff.isInClient()) {
               liff.openWindow({ url: cLink });
@@ -246,10 +535,9 @@
         $('aDashboardList').innerHTML = '<p style="color:#c00">載入訂單失敗。</p>';
       }
     }
-    // === (結束) A 的「寄件儀表板」 ===
 
 
-    // === 步驟 3. B 的「註冊」(函式改名) ===
+    // === B 的「註冊」(函式改名) ===
     function initRoleBCreate(){ // (原 initRoleB)
       show('roleB', true);
       $('bName').textContent = currentProfile.displayName;
@@ -267,7 +555,73 @@
 
         $('formB').addEventListener('submit', async (e) => {
           e.preventDefault();
-          // ... (B 註冊的提交邏輯) ...
+          const form = e.target;
+          const formData = new FormData(form);
+          formData.append('action', 'registerBUser');
+          formData.append('oaUserId', currentProfile.userId);
+          formData.append('profileName', currentProfile.displayName);
+          formData.append('agreed', true);
+          const routes = [];
+          document.querySelectorAll('.commute-route-block').forEach((routeEl) => {
+            const routeId = routeEl.getAttribute('data-route-id');
+            const repeatType = formData.get(`${routeId}_repeatType`);
+            const transportType = formData.get(`${routeId}_transportType`);
+            const endType = formData.get(`${routeId}_endType`); 
+            const routeData = {
+              date: formData.get(`${routeId}_date`),
+              startTime: formData.get(`${routeId}_startTime`),
+              endTime: formData.get(`${routeId}_endTime`),
+              repeat: {
+                type: repeatType,
+                customInterval: (repeatType === 'custom') ? formData.get(`${routeId}_customInterval`) : null,
+                customUnit: (repeatType === 'custom') ? formData.get(`${routeId}_customUnit`) : null,
+                customDays: (repeatType === 'custom') ? formData.getAll(`${routeId}_customDays`) : [],
+                end: {
+                  type: endType,
+                  date: (endType === 'on') ? formData.get(`${routeId}_endDate`) : null,
+                  occurrences: (endType === 'after') ? formData.get(`${routeId}_endOccurrences`) : null
+                }
+              },
+              transport: {
+                type: transportType,
+                start_system: (transportType !== 'other' && $(`${routeId}_start_System`)) ? $(`${routeId}_start_System`).value : null,
+                start_line: (transportType !== 'other' && $(`${routeId}_start_Line`)) ? $(`${routeId}_start_Line`).value : null,
+                start_station: (transportType !== 'other' && $(`${routeId}_start_Station`)) ? $(`${routeId}_start_Station`).value : null,
+                end_system: (transportType !== 'other' && $(`${routeId}_end_System`)) ? $(`${routeId}_end_System`).value : null,
+                end_line: (transportType !== 'other' && $(`${routeId}_end_Line`)) ? $(`${routeId}_end_Line`).value : null,
+                end_station: (transportType !== 'other' && $(`${routeId}_end_Station`)) ? $(`${routeId}_end_Station`).value : null,
+                other_vehicle: (transportType === 'other') ? formData.get(`${routeId}_other_vehicle`) : null,
+                other_start: (transportType === 'other') ? formData.get(`${routeId}_other_start`) : null,
+                other_end: (transportType === 'other') ? formData.get(`${routeId}_other_end`) : null,
+              }
+            };
+            routes.push(routeData);
+            formData.delete(`${routeId}_date`);
+            formData.delete(`${routeId}_startTime`);
+            formData.delete(`${routeId}_endTime`);
+            formData.delete(`${routeId}_repeatType`);
+            formData.delete(`${routeId}_customInterval`);
+            formData.delete(`${routeId}_customUnit`);
+            formData.getAll(`${routeId}_customDays`).forEach(() => formData.delete(`${routeId}_customDays`));
+            formData.delete(`${routeId}_endType`);
+            formData.delete(`${routeId}_endDate`);
+            formData.delete(`${routeId}_endOccurrences`);
+            formData.delete(`${routeId}_transportType`);
+            formData.delete(`${routeId}_other_vehicle`);
+            formData.delete(`${routeId}_other_start`);
+            formData.delete(`${routeId}_other_end`);
+          });
+          formData.append('commuteRoutes_json', JSON.stringify(routes));
+          try{
+            const res = await fetch(BACKEND_URL, {
+              method:'POST', 
+              body: formData 
+            });
+            const json = await res.json();
+            if(json.status!=='success') throw new Error(json.message || 'failed');
+            $('bResult').style.display='block';
+            $('formB').style.display='none';
+          }catch(err){ showError('送出失敗：'+err.message); }
         });
       };
 
@@ -285,14 +639,329 @@
       if(hasConsentB()) goForm(); else goConsent();
     }
     
-    // (B) 相關的輔助函式 (addNewCommuteRoute, updateAddRouteButtonVisibility, 等等)
-    function updateAddRouteButtonVisibility() { /* ... (函式保持不變) ... */ }
-    function generateRecurrenceSummary(routeId) { /* ... (函式保持不變) ... */ }
-    function updateSummaryUI(routeId) { /* ... (函式保持不變) ... */ }
-    function updateRepetitionOptions(routeId) { /* ... (函式保持不變) ... */ }
-    function addNewCommuteRoute() { /* ... (函式保持不變) ... */ }
+    // (B) 相關的輔助函式
+    function updateAddRouteButtonVisibility() {
+      const count = $('commuteRoutesContainer').childElementCount;
+      $('addRouteBtn').style.display = (count >= 3) ? 'none' : 'block';
+    }
 
-    // (C) 的函式
+    function generateRecurrenceSummary(routeId) {
+        const dateInput = $(`${routeId}_date`);
+        const repeatSelect = $(`${routeId}_repeatType`);
+        if (!dateInput || !repeatSelect) return { summaryText: "初始化中...", nextDatesStr: "" };
+        const controls = {
+            date: dateInput.value,
+            type: repeatSelect.value,
+            interval: parseInt($(`${routeId}_customInterval`).value, 10) || 1,
+            unit: $(`${routeId}_customUnit`).value,
+            days: Array.from(document.querySelectorAll(`input[name="${routeId}_customDays"]:checked`)).map(cb => parseInt(cb.value, 10)),
+            endType: document.querySelector(`input[name="${routeId}_endType"]:checked`).value,
+            endDate: $(`${routeId}_endDate`).value,
+            endOccurrences: parseInt($(`${routeId}_endOccurrences`).value, 10) || 1
+        };
+        const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
+        let summaryText = "";
+        let nextDates = [];
+        let currentDate = new Date(controls.date);
+        if (isNaN(currentDate.getTime())) return { summaryText: "日期無效", nextDatesStr: "" };
+        const endDate = (controls.endType === 'on' && controls.endDate) ? new Date(controls.endDate) : null;
+        const maxOccurrences = (controls.endType === 'after') ? controls.endOccurrences : Infinity;
+        const formatDate = (d) => getTodayYYYYMMDD('-', d); 
+        let occurrences = 0;
+        if (endDate && currentDate > endDate) { } 
+        else if (occurrences < maxOccurrences) {
+          occurrences++; 
+        }
+        switch (controls.type) {
+            case 'none':
+                summaryText = "不重複";
+                break;
+            case 'daily':
+                summaryText = "每天";
+                while (nextDates.length < 5 && occurrences < maxOccurrences) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    if (endDate && currentDate > endDate) break;
+                    nextDates.push(formatDate(currentDate));
+                    occurrences++;
+                }
+                break;
+            case 'weekly':
+                summaryText = `每週 (星期${dayNames[currentDate.getDay()]})`;
+                while (nextDates.length < 5 && occurrences < maxOccurrences) {
+                    currentDate.setDate(currentDate.getDate() + 7);
+                    if (endDate && currentDate > endDate) break;
+                    nextDates.push(formatDate(currentDate));
+                    occurrences++;
+                }
+                break;
+            case 'weekdays':
+                summaryText = "平日 (星期一至五)";
+                while (nextDates.length < 5 && occurrences < maxOccurrences) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    if (endDate && currentDate > endDate) break;
+                    if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
+                        nextDates.push(formatDate(currentDate));
+                        occurrences++;
+                    }
+                }
+                break;
+            case 'weekends':
+                summaryText = "週末 (星期六日)";
+                while (nextDates.length < 5 && occurrences < maxOccurrences) {
+                    currentDate.setDate(currentDate.getDate() + 1);
+                    if (endDate && currentDate > endDate) break;
+                    if (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
+                        nextDates.push(formatDate(currentDate));
+                        occurrences++;
+                    }
+                }
+                break;
+            case 'custom':
+                const selectedDays = controls.days.map(d => `星期${dayNames[d]}`).join('、');
+                summaryText = `每 ${controls.interval} ${controls.unit === 'day' ? '天' : (controls.unit === 'week' ? '週' : '個月')} (於 ${selectedDays})`;
+                break;
+        }
+        if (controls.type !== 'none') {
+          if (controls.endType === 'on' && endDate) {
+              summaryText += `，直到 ${controls.endDate} 停止`;
+          } else if (controls.endType === 'after') {
+              summaryText += `，共 ${controls.endOccurrences} 次`;
+          }
+        }
+        let nextDatesStr = nextDates.length > 0 ? `接下來的日期：${nextDates.join(', ')}` : " ";
+        if (controls.type === 'custom') {
+            nextDatesStr = " (自訂規則不預覽日期)";
+        }
+        return { summaryText, nextDatesStr };
+    }
+    
+    function updateSummaryUI(routeId) {
+        const { summaryText, nextDatesStr } = generateRecurrenceSummary(routeId);
+        const summaryEl = document.querySelector(`[data-route-id="${routeId}"] .repetition-summary`);
+        if (!summaryEl) return;
+        summaryEl.querySelector('.summary-text').textContent = summaryText;
+        summaryEl.querySelector('.summary-dates').textContent = nextDatesStr;
+        summaryEl.style.display = (summaryText === "不重複") ? 'none' : 'block';
+    }
+
+    function updateRepetitionOptions(routeId) {
+        const dateInput = $(`${routeId}_date`);
+        const repeatSelect = $(`${routeId}_repeatType`);
+        const weekdaySelector = document.querySelector(`[data-route-id="${routeId}"] .weekday-selector`);
+        if (!dateInput || !repeatSelect || !weekdaySelector) return;
+        const dateStr = dateInput.value;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return; 
+        const date = new Date(dateStr); 
+        if (isNaN(date.getTime())) return; 
+        const dayOfWeek = date.getDay();
+        const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
+        const currentValue = repeatSelect.value;
+        repeatSelect.innerHTML = ''; 
+        repeatSelect.add(new Option('不重複', 'none'));
+        repeatSelect.add(new Option('每天', 'daily'));
+        repeatSelect.add(new Option(`每週 (星期${dayNames[dayOfWeek]})`, 'weekly'));
+        const isWeekday = (dayOfWeek > 0 && dayOfWeek < 6);
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        if (isWeekday) {
+            repeatSelect.add(new Option('平日 (星期一至五)', 'weekdays'));
+        }
+        if (isWeekend) {
+            repeatSelect.add(new Option('週末 (星期六日)', 'weekends'));
+        }
+        repeatSelect.add(new Option('自訂...', 'custom'));
+        if (repeatSelect.querySelector(`option[value="${currentValue}"]`)) {
+            repeatSelect.value = currentValue;
+        } else {
+            repeatSelect.value = 'none';
+        }
+        const checkboxes = weekdaySelector.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach((chk, index) => {
+            chk.disabled = false;
+            if (repeatSelect.value !== 'custom') {
+                 chk.checked = false;
+            }
+            if (index === dayOfWeek) {
+                chk.checked = true;
+                chk.disabled = true; 
+            }
+        });
+        updateSummaryUI(routeId);
+    }
+    
+    function addNewCommuteRoute() {
+      if ($('commuteRoutesContainer').childElementCount >= 3) {
+          alert('通勤路線最多 3 條');
+          return;
+      }
+      routeCounter++;
+      const routeId = `route${routeCounter}`;
+      const div = document.createElement('div');
+      div.className = 'commute-route-block';
+      div.setAttribute('data-route-id', routeId);
+      const todayStr = getTodayYYYYMMDD('-'); 
+      div.innerHTML = `
+        <div class="grid" style="grid-template-columns: 1fr auto;">
+          <h4 style="margin:0">路線 ${routeCounter}</h4>
+          <button type="button" class="linkBtn remove-route-btn" style="color:#c00">移除此路線</button>
+        </div>
+        <div class="repetition-controls">
+          <div class="grid g3">
+            <label>日期 <input type="date" class="route-date-input" id="${routeId}_date" name="${routeId}_date" value="${todayStr}"> </label>
+            <label>開始時間 <input type="time" name="${routeId}_startTime" value="08:00"> </label>
+            <label>結束時間 <input type="time" name="${routeId}_endTime" value="18:00"> </label>
+          </div>
+          <label>週期
+            <select name="${routeId}_repeatType" id="${routeId}_repeatType" class="repeat-type-select">
+            </select>
+          </label>
+          <div class="custom-repeat-options">
+            <div class="grid g2">
+              <label>重複間隔 <input type="number" id="${routeId}_customInterval" name="${routeId}_customInterval" value="1" min="1"> </label>
+              <label>單位
+                <select name="${routeId}_customUnit" id="${routeId}_customUnit">
+                  <option value="day">天</option>
+                  <option value="week">週</option>
+                  <option value="month">月</option>
+                </select>
+              </label>
+            </div>
+            <label>重複日期：</label>
+            <div class="weekday-selector">
+              ${['日','一','二','三','四','五','六'].map((day, i) => `
+                <label>
+                  <input type="checkbox" name="${routeId}_customDays" value="${i}">
+                  <span>${day}</span>
+                </label>
+              `).join('')}
+            </div>
+            <label style="margin-top:12px">結束時間：</label>
+            <div>
+              <input type="radio" id="${routeId}_end_never" name="${routeId}_endType" value="never" checked> <label for="${routeId}_end_never" class="radio-label">持續不停</label>
+            </div>
+            <div style="display:flex; align-items:center; gap: 5px;">
+              <input type="radio" id="${routeId}_end_on" name="${routeId}_endType" value="on"> 
+              <label for="${routeId}_end_on" class="radio-label" style="margin:0;">於</label>
+              <input type="date" name="${routeId}_endDate" id="${routeId}_endDate" value="${todayStr}" style="display:none; flex-grow: 1;">
+              <span class="end-on-label" style="display:none;"> 停止</span>
+            </div>
+            <div style="display:flex; align-items:center; gap: 5px;">
+              <input type="radio" id="${routeId}_end_after" name="${routeId}_endType" value="after">
+              <label for="${routeId}_end_after" class="radio-label" style="margin:0;">重複</label>
+              <input type="number" name="${routeId}_endOccurrences" id="${routeId}_endOccurrences" min="1" value="13" style="display:none; width: 80px;">
+              <span class="end-after-label" style="display:none;"> 次</span>
+            </div>
+          </div>
+          <div class="repetition-summary">
+            <p><span class="summary-text"></span></p>
+            <small class="summary-dates"></small>
+          </div>
+        </div>
+        <div class="transport-method-entry">
+          <label>交通方式
+            <select name="${routeId}_transportType" class="transport-type-select">
+              <option value="">請選擇</option>
+              <option value="台鐵（依縣市）">台鐵</option>
+              <option value="高鐵">高鐵</option>
+              <option value="台北捷運">台北捷運</option>
+              <option value="高雄捷運">高雄捷運</option>
+              <option value="other">其他</option>
+            </select>
+          </label>
+          <div class="transport-dropdowns" style="display:none; background: #fff; padding: 10px; border-radius: 8px;">
+            <fieldset class="fromWrap" style="border:none; padding: 5px;">
+              <legend><b>起點</b></legend>
+              <select id="${routeId}_start_System" style="display: none;"></select>
+              <div class="grid g2">
+                <label>路線 <select id="${routeId}_start_Line"></select></label>
+                <label>站點 <select id="${routeId}_start_Station"></select></label>
+              </div>
+            </fieldset>
+            <fieldset class="toWrap" style="border:none; padding: 5px;">
+              <legend><b>終點</b></legend>
+              <select id="${routeId}_end_System" style="display: none;"></select>
+              <div class="grid g2">
+                <label>路線 <select id="${routeId}_end_Line"></select></label>
+                <label>站點 <select id="${routeId}_end_Station"></select></label>
+              </div>
+            </fieldset>
+          </div>
+          <div class="transport-other" style="display:none; background: #fff; padding: 10px; border-radius: 8px;">
+            <div class="grid g2">
+              <label>交通工具 <input name="${routeId}_other_vehicle" placeholder="機車 / 汽車"> </label>
+              <label>詳細起點 <input name="${routeId}_other_start" placeholder="例：台北 101"> </label>
+            </div>
+            <label>詳細終點 <input name="${routeId}_other_end" placeholder="例：南港展覽館"> </label>
+          </div>
+        </div>
+      `;
+      $('commuteRoutesContainer').appendChild(div);
+      const repeatSelect = $(`${routeId}_repeatType`);
+      const customOptions = div.querySelector('.custom-repeat-options');
+      const repetitionControls = div.querySelector('.repetition-controls');
+      const updateAllRepetition = () => {
+          updateRepetitionOptions(routeId); 
+          customOptions.style.display = (repeatSelect.value === 'custom') ? 'block' : 'none'; 
+          updateSummaryUI(routeId); 
+      };
+      repetitionControls.addEventListener('change', (e) => {
+          if (e.target.name && e.target.name.startsWith(routeId)) {
+              updateAllRepetition();
+          }
+      });
+      const endRadios = div.querySelectorAll(`input[name="${routeId}_endType"]`);
+      const endDateInput = $(`${routeId}_endDate`);
+      const endOnLabel = div.querySelector(`.end-on-label`);
+      const endOccurrencesInput = $(`${routeId}_endOccurrences`);
+      const endAfterLabel = div.querySelector(`.end-after-label`);
+      endRadios.forEach(radio => {
+          radio.addEventListener('change', () => {
+              const showOn = (radio.value === 'on' && radio.checked);
+              const showAfter = (radio.value === 'after' && radio.checked);
+              endDateInput.style.display = showOn ? 'block' : 'none';
+              endOnLabel.style.display = showOn ? 'inline' : 'none';
+              endOccurrencesInput.style.display = showAfter ? 'block' : 'none';
+              endAfterLabel.style.display = showAfter ? 'inline' : 'none';
+          });
+      });
+      const transportSelect = div.querySelector('.transport-type-select');
+      const dropdownContainer = div.querySelector('.transport-dropdowns');
+      const otherContainer = div.querySelector('.transport-other');
+      transportSelect.addEventListener('change', () => {
+        const type = transportSelect.value;
+        const startPrefix = `${routeId}_start_`;
+        const endPrefix = `${routeId}_end_`;
+        if (type === 'other') {
+          dropdownContainer.style.display = 'none';
+          otherContainer.style.display = 'block';
+        } else if (type) {
+          dropdownContainer.style.display = 'block';
+          otherContainer.style.display = 'none';
+          if (!$(startPrefix + 'System')._initialized) {
+            initStationSelectors(startPrefix);
+            initStationSelectors(endPrefix);
+            $(startPrefix + 'System')._initialized = true;
+          }
+          $(startPrefix + 'System').value = type;
+          $(endPrefix + 'System').value = type;
+          $(startPrefix + 'System').dispatchEvent(new Event('change'));
+          $(endPrefix + 'System').dispatchEvent(new Event('change'));
+        } else {
+          dropdownContainer.style.display = 'none';
+          otherContainer.style.display = 'none';
+        }
+      });
+      div.querySelector('.remove-route-btn').addEventListener('click', () => {
+        if(confirm('確定要移除此路線嗎？')) {
+          div.remove();
+          updateAddRouteButtonVisibility(); 
+        }
+      });
+      updateAllRepetition(); 
+      updateAddRouteButtonVisibility(); 
+    }
+
+
+    // === (C) 的函式 ===
     async function initRoleC(){
       show('roleC', true);
       $('cName').textContent=currentProfile.displayName;
@@ -302,9 +971,7 @@
         const res=await fetch(BACKEND_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
         const json=await res.json();
         if(json.status!=='success') throw new Error(json.message||'failed');
-        
-        // (後端 GAS 需回傳 order 物件)
-        const o=json.order; 
+        const o=json.order;
         $('cOrder').innerHTML=`
           <p>訂單編號：${o.orderId}</p>
           <p>開單人：${o.aName}</p>
