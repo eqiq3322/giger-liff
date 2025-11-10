@@ -12,20 +12,30 @@
     input,select,textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--bd);border-radius:10px}
     button{padding:10px 14px;border-radius:10px;border:1px solid #999;background:#fff;cursor:pointer}
     button[disabled]{opacity:.5;cursor:not-allowed}
+    button.smallBtn{padding:4px 8px;font-size:0.9em}
+    button.linkBtn{background:none;border:none;color:#007bff;padding:4px;cursor:pointer;text-decoration:underline}
     small{color:var(--muted)}
     .card{border:1px solid var(--bd);border-radius:12px;padding:12px;margin-top:12px;background:#fff}
     .grid{display:grid;gap:8px}
     .g2{grid-template-columns:1fr 1fr}
+    .g3{grid-template-columns:1fr 1fr 1fr}
     #error{color:#c00;margin:8px 0;display:none}
     .fromWrap{background:var(--from)}
     .toWrap{background:var(--to)}
+
+    /* B 角色專用樣式 */
+    .commute-route-block{border:2px solid #007bff;border-radius:10px;padding:10px;margin-top:12px;background:#f8faff}
+    .transport-method-entry{border:1px dashed #ccc;border-radius:8px;padding:8px;margin-top:8px}
+    .weekday-selector{display:flex;gap:4px;justify-content:space-around;margin-top:8px}
+    .weekday-selector label{border:1px solid var(--bd);border-radius:50%;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+    .weekday-selector input[type="checkbox"]{display:none}
+    .weekday-selector input[type="checkbox"]:checked + span{background:#007bff;color:#fff;border-color:#007bff;border-radius:50%}
   </style>
 </head>
 <body>
   <div id="loading">載入中…</div>
   <div id="error"></div>
 
-  <!-- A：條款同意頁 -->
   <section id="roleAConsent" style="display:none">
     <h2>使用條款與隱私告知</h2>
     <div class="card" style="max-height:42vh; overflow:auto">
@@ -40,11 +50,11 @@
         </li>
         <li>禁止站內營業行為；平台不經手運費。建議現金結清；若採轉帳，B 自行承擔確認風險。</li>
         <li>食安與法規遵循：不得託運違禁品、危險品或法規限制物品。</li>
-        <li>夜間安全規則：建議交/到貨點選擇「24 小時超商門口」或「有警衛大樓門口」。送貨人如判斷不安全有權取消且不記爽約。</li>
+        <li>夜間安全規則：建議交/到貨點選擇「24 小時超商門口」或「有警衛大樓門口」。B 得依自身安全判斷單方取消且不列入爽約。</li>
         <li>大眾運輸誤點風險：B 可能搭乘大眾運輸，時間恐受影響。</li>
         <li>責任限制：除非因平台重大過失，平台不負賠償責任。</li>
-        <li>您的收貨人收貨失敗時，由 B 主動聯繫 A 協議後續處理。</li>
-        <li>收貨人若未如約取貨，已支付之運費不予退還。</li>
+        <li>C 收貨失敗時，由 B 主動聯繫 A 協議後續處理。</li>
+        <li><b>如果 C 未如約取貨，A 的運費不會退。</b></li>
         <li>Linebot 會廣播媒合所需之訂單資訊與收款方式（A/C）。</li>
       </ul>
     </div>
@@ -60,7 +70,6 @@
     </div>
   </section>
 
-  <!-- A：建立訂單 -->
   <section id="roleA" style="display:none">
     <h2>建立訂單</h2>
     <p>您好，<b id="aName"></b></p>
@@ -72,7 +81,6 @@
         <textarea name="itemDesc" rows="3" placeholder="例如：鞋盒一個、約 2kg，長 40cm" required></textarea>
       </label>
 
-      <!-- 交貨點（起點） -->
       <fieldset class="card fromWrap" style="border:none">
         <legend><b>交貨點（起點）</b></legend>
         <div class="grid g2">
@@ -99,7 +107,6 @@
         <small>夜間建議選「超商門口 / 有警衛大樓門口」。送貨人如判斷不安全有權取消且不記爽約。</small>
       </fieldset>
 
-      <!-- 到貨點（終點） -->
       <fieldset class="card toWrap" style="border:none">
         <legend><b>到貨點（終點）</b></legend>
         <div class="grid g2">
@@ -126,7 +133,6 @@
         <small>以接單人方便的時間為主；若接單者過少，平台將通知協調時間。</small>
       </fieldset>
 
-      <!-- 收貨人 -->
       <div class="grid g2">
         <label>收貨人稱謂
           <input name="receiverTitle" placeholder="例：王小姐 / 張先生" required>
@@ -136,7 +142,6 @@
         </label>
       </div>
 
-      <!-- 運費 -->
       <div class="card" style="background:#fafafa">
         <h4>運費與付款</h4>
         <label><input type="radio" name="payer" value="A" checked> 運費由 A 付款</label>
@@ -168,133 +173,114 @@
     </div>
   </section>
 
-  <!-- B：條款同意頁 -->
-  <section id="roleBConsent" style="display:none">
-    <h2>B 使用條款與隱私告知</h2>
-    <div class="card" style="max-height:42vh;overflow:auto">
-      <ul style="margin-left:18px">
-        <li>我已年滿 18 歲，並願以本名提供服務，收款帳戶與姓名相同。</li>
-        <li>個資告知（依《個資法》）：蒐集姓名、電話、位置；目的：媒合、送貨、收款；分享對象：A 可見 B 資訊，C 可見 B 即時位置；保存期間：達成目的後刪除或去識別化。</li>
-        <li>付款風險告知：建議現金收款；若同意轉帳，務必自行於網銀/郵局 App 確認「確實入帳」後再交付。若未確實核對而受騙，平台概不負責。</li>
-        <li>運送過程若遺失，需負賠償與相關法律責任；違者停權。</li>
-        <li>按下「啟程」後，平台將蒐集並分享你的即時位置給 C；交付完成或 30 分鐘後自動停止與刪除。</li>
-      </ul>
-    </div>
-    <div class="card">
-      <label><input type="checkbox" id="b_consent_chk"> 我已閱讀並同意上述條款（且我已年滿 18 歲）</label>
-      <div style="display:flex;gap:8px;margin-top:8px">
-        <button id="btnBConsentAgree" disabled>同意並開始填寫</button>
-        <button id="btnBConsentCancel" style="border-color:#c00;color:#c00">不同意</button>
-      </div>
-    </div>
-  </section>
-
-  <!-- B：註冊 / 路線 -->
   <section id="roleB" style="display:none">
-    <h2>B 實名註冊 & 可媒合時段</h2>
+    <h2>GIGER 夥伴設定</h2>
     <p>您好，<b id="bName"></b></p>
 
-    <form id="formB" class="card">
-      <h3>身分與收款</h3>
+    <div id="roleBConsent">
+      <div class="card" style="max-height:42vh; overflow:auto">
+        <h3 style="margin:0 0 8px">請詳閱 GIGER 夥伴條款</h3>
+        
+        <h4>1. 夥伴資格 (KYC)</h4>
+        <ul style="margin-left:18px">
+          <li>您必須年滿 18 歲。</li>
+          <li>您必須提供真實姓名、可驗證的手機號碼、以及與真實姓名同名的銀行帳戶（用於收款）。</li>
+        </ul>
+
+        <h4>2. 隱私權與個資告知 (符合《個資法》)</h4>
+        <ul style="margin-left:18px">
+          <li><b>蒐集資料</b>：姓名、電話、銀行帳戶、即時位置資訊。</li>
+          <li><b>蒐集目的</b>：身份驗證 (KYC)、訂單媒合、A/C 聯繫、C 方追蹤貨物位置、運費支付。</li>
+          <li><b>分享對象</b>：
+            <ul>
+              <li>A (寄件人) 將在媒合成功後看到您的稱謂與聯絡資訊。</li>
+              <li>C (收件人) 將在您按下「啟程」後，看到您的即時位置，直到「交付完成」或 30 分鐘後。</li>
+            </ul>
+          </li>
+          <li><b>保存期間</b>：依《個資法》規定，於目的消失後刪除或去識別化。</li>
+        </ul>
+
+        <h4>3. 付款與風險</h4>
+        <ul style="margin-left:18px">
+          <li>平台建議以<b>現金收款</b>。</li>
+          <li><b>付款風險告知</b>：若您（B）同意接受 A/C 的轉帳，您必須自行承擔確認入帳的責任。<b>切勿僅憑對方出示的「轉帳截圖」交貨</b>，請務必開啟自己的網路銀行或郵局APP，確認款項「確實入帳」後，才可交付物品或啟程。若因未確實核對而受騙，平台概不負責。</li>
+        </ul>
+        
+        <h4>4. 責任與賠償</h4>
+        <ul style="margin-left:18px">
+          <li>您有妥善保管托運物品的義務。</li>
+          <li>若因您的過失導致運送過程物品遺失或毀損，您需負擔相應的賠償與法律責任，平台亦有權將您停權。</li>
+        </ul>
+        
+        <h4>5. 即時位置資訊告知</h4>
+        <ul style="margin-left:18px">
+          <li>為履行送貨義務及確保 C 能準確取貨，<b>您按下「啟程」後，平台將蒐集您的即時位置資訊，並分享給收貨人 C</b>。</li>
+          <li>此資訊將在交付完成或 30 分鐘後自動停止分享與刪除。</li>
+        </ul>
+      </div>
+      <div class="card">
+        <label><input type="checkbox" id="b_consent_chk1"> 我確認我已年滿 18 歲，並提供真實資料。</label>
+        <label><input type="checkbox" id="b_consent_chk2"> 我已詳閱並同意上述所有隱私權與個資條款。</label>
+        <label><input type="checkbox" id="b_consent_chk3"> 我已了解付款風險、賠償責任與位置分享機制。</label>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button id="btnBConsentAgree" disabled>同意並開始設定</button>
+          <button id="btnBConsentCancel" style="border-color:#c00;color:#c00">不同意</button>
+        </div>
+      </div>
+    </div>
+
+    <form id="formB" class="card" style="display:none">
+      <h3>1. 實名認證 (KYC)</h3>
       <div class="grid g2">
         <label>真實姓名
-          <input name="name" required>
+          <input name="name" placeholder="請填入與銀行帳戶同名" required>
         </label>
-        <label>手機號碼（簡訊驗證）
-          <input name="phone" id="b_phone" inputmode="tel" placeholder="0912345678" required>
-        </label>
-      </div>
-
-      <div class="grid g2">
-        <div>
-          <button type="button" id="btnSendOtp">發送驗證碼</button>
-          <div style="margin-top:6px">
-            <input id="otpCode" placeholder="輸入驗證碼" style="width:160px">
-            <button type="button" id="btnVerifyOtp">驗證</button>
-            <small id="otpStatus" style="margin-left:6px"></small>
-          </div>
-          <div id="recaptcha-container"></div>
-        </div>
-        <label>銀行帳號（同姓名）
-          <input name="bankAccount" required>
+        <label>手機號碼
+          <input name="phone" inputmode="tel" placeholder="用於 Line 驗證與聯繫" required>
         </label>
       </div>
-
-      <label class="card">
-        存摺封面（jpg/png，清晰可辨同名）
-        <input type="file" id="bankbookFile" accept="image/*" />
-        <small id="bankbookHint">上傳後會連同表單送到後端（base64）。</small>
+      <label>銀行帳號（用於收款）
+        <input name="bankAccount" placeholder="例：822 (中信) 1234567890" required>
       </label>
+      <label><input type="checkbox" name="nameMatch" required> 我確認此銀行帳戶戶名與上述真實姓名相同。</label>
 
-      <h3>可媒合「日期／時間」</h3>
-      <div class="card" style="background:#fafafa">
-        <div class="grid g2">
-          <label>日期（yyyy/mm/dd）
-            <input id="b_date" placeholder="yyyy/mm/dd" required>
-          </label>
-          <div class="grid g2">
-            <label>開始時間
-              <select id="b_time_start"></select>
-            </label>
-            <label>結束時間
-              <select id="b_time_end"></select>
-            </label>
-          </div>
+      <hr style="border:0; border-top:1px solid var(--bd); margin:20px 0">
+
+      <h3>2. 通勤路線與時間</h3>
+      <p style="margin:0"><small>請設定您可接單的通勤路線與時段。您可以新增多條不同的路線（例如：上班、下班、週末）。</small></p>
+      
+      <div id="commuteRoutesContainer">
         </div>
-        <label style="margin-top:8px">重複
-          <select id="b_repeat">
-            <option value="none">不重複</option>
-            <option value="daily">每天</option>
-            <option value="weekly">每週（選星期）</option>
-            <option value="weekday">平日（一至五）</option>
-            <option value="custom">自訂</option>
-          </select>
-        </label>
-        <div id="customRepeat" style="display:none;margin-top:8px">
-          <div class="grid g2">
-            <label>間隔<input type="number" id="r_interval" value="1" min="1"></label>
-            <label>單位
-              <select id="r_unit"><option value="week">週</option><option value="day">天</option></select>
-            </label>
-          </div>
-          <div style="margin-top:6px">星期：
-            <label><input type="checkbox" class="r_w" value="1">一</label>
-            <label><input type="checkbox" class="r_w" value="2">二</label>
-            <label><input type="checkbox" class="r_w" value="3">三</label>
-            <label><input type="checkbox" class="r_w" value="4">四</label>
-            <label><input type="checkbox" class="r_w" value="5">五</label>
-            <label><input type="checkbox" class="r_w" value="6">六</label>
-            <label><input type="checkbox" class="r_w" value="0">日</label>
-          </div>
-          <div class="grid g2" style="margin-top:6px">
-            <label>結束於（yyyy/mm/dd，可空白）
-              <input id="r_until" placeholder="yyyy/mm/dd">
-            </label>
-            <label>或重複 N 次
-              <input type="number" id="r_count" min="1" placeholder="可不填">
-            </label>
-          </div>
-        </div>
-      </div>
 
-      <h3>通勤路線（最多 3 條）</h3>
-      <div id="routesWrap" class="card">
-        <div id="routes"></div>
-        <button type="button" id="btnAddRoute">＋ 新增一條路線</button>
-      </div>
-
-      <button type="submit">送出</button>
+      <button type="button" id="addRouteBtn" style="margin-top:12px; width:100%; background:#f0f7ff; border-color:#007bff; color:#007bff"><b>+ 新增通勤路線</b></button>
+      
+      <hr style="border:0; border-top:1px solid var(--bd); margin:20px 0">
+      
+      <button type="submit" style="background:#007bff; color:#fff">儲存設定</button>
     </form>
-
-    <div id="bResult" class="card" style="display:none">註冊成功！</div>
+    
+    <div id="bResult" class="card" style="display:none">註冊/更新成功！</div>
   </section>
 
-  <!-- C：從 A 的連結進來，看訂單 -->
   <section id="roleC" style="display:none">
     <h2>訂單資訊</h2>
     <p>您好，<b id="cName"></b></p>
     <div id="cOrder" class="card">載入中...</div>
   </section>
+
+  <datalist id="stations_trtc">
+    <option value="象山"></option><option value="台北101/世貿"></option><option value="信義安和"></option><option value="大安"></option><option value="大安森林公園"></option><option value="東門"></option><option value="中正紀念堂"></option><option value="台大醫院"></option><option value="台北車站"></option><option value="中山"></option><option value="雙連"></option><option value="民權西路"></option><option value="圓山"></option><option value="劍潭"></option><option value="士林"></option><option value="芝山"></option><option value="明德"></option><option value="石牌"></option><option value="唭哩岸"></option><option value="奇岩"></option><option value="北投"></option><option value="復興崗"></option><option value="忠義"></option><option value="關渡"></option><option value="竹圍"></option><option value="紅樹林"></option><option value="淡水"></option><option value="新店"></option><option value="新店區公所"></option><option value="七張"></option><option value="小碧潭"></option><option value="大坪林"></option><option value="景美"></option><option value="萬隆"></option><option value="公館"></option><option value="台電大樓"></option><option value="古亭"></option><option value="小南門"></option><option value="西門"></option><option value="北門"></option><option value="松江南京"></option><option value="南京復興"></option><option value="台北小巨蛋"></option><option value="南京三民"></option><option value="松山"></option><option value="南勢角"></option><option value="景安"></option><option value="永安市場"></option><option value="頂溪"></option><option value="忠孝新生"></option><option value="行天宮"></option><option value="中山國小"></option><option value="大橋頭"></option><option value="台北橋"></option><option value="菜寮"></option><option value="三重"></option><option value="先嗇宮"></option><option value="頭前庄"></option><option value="新莊"></option><option value="輔大"></option><option value="丹鳳"></option><option value="迴龍"></option><option value="三重國小"></option><option value="三和國中"></option><option value="徐匯中學"></option><option value="三民高中"></option><option value="蘆洲"></option><option value="頂埔"></option><option value="永寧"></option><option value="土城"></option><option value="海山"></option><option value="亞東醫院"></option><option value="府中"></option><option value="板橋"></option><option value="新埔"></option><option value="江子翠"></option><option value="龍山寺"></option><option value="善導寺"></option><option value="忠孝復興"></option><option value="忠孝敦化"></option><option value="國父紀念館"></option><option value="市政府"></option><option value="永春"></option><option value="後山埤"></option><option value="昆陽"></option><option value="南港"></option><option value="南港展覽館"></option><option value="動物園"></option><option value="木柵"></option><option value="萬芳社區"></option><option value="萬芳醫院"></option><option value="辛亥"></option><option value="麟光"></option><option value="六張犁"></option><option value="科技大樓"></option><option value="中山國中"></option><option value="松山機場"></option><option value="大直"></option><option value="劍南路"></option><option value="西湖"></option><option value="港墘"></option><option value="文德"></option><option value="內湖"></option><option value="大湖公園"></option><option value="葫洲"></option><option value="東湖"></option><option value="南港軟體園區"></option><option value="新北產業園區"></option><option value="幸福"></option><option value="新北輔大"></option><option value="中原"></option><option value="橋和"></option><option value="中和"></option><option value="景平"></option><option value="中和高中"></option><option value="秀朗橋"></option>
+  </datalist>
+  <datalist id="stations_krtc">
+    <option value="小港"></option><option value="高雄國際機場"></option><option value="草衙"></option><option value="前鎮高中"></option><option value="凱旋"></option><option value="獅甲"></option><option value="三多商圈"></option><option value="中央公園"></option><option value="美麗島"></option><option value="高雄車站"></option><option value="後驛"></option><option value="凹子底"></option><option value="巨蛋"></option><option value="生態園區"></option><option value="左營"></option><option value="世運"></option><option value="西子灣"></option><option value="鹽埕埔"></option><option value="市議會"></option><option value="信義國小"></option><option value="文化中心"></option><option value="五塊厝"></option><option value="技擊館"></option><option value="衛武營"></option><option value="鳳山西"></option><option value="鳳山"></option><option value="大東"></option><option value="鳳山國中"></option><option value="大寮"></option>
+  </datalist>
+  <datalist id="stations_thsrc">
+    <option value="南港"></option><option value="台北"></option><option value="板橋"></option><option value="桃園"></option><option value="新竹"></option><option value="苗栗"></option><option value="台中"></option><option value="彰化"></option><option value="雲林"></option><option value="嘉義"></option><option value="台南"></option><option value="左營"></option>
+  </datalist>
+  <datalist id="stations_tra">
+    <option value="基隆"></option><option value="七堵"></option><option value="汐止"></option><option value="南港"></option><option value="松山"></option><option value="台北"></option><option value="萬華"></option><option value="板橋"></option><option value="樹林"></option><option value="桃園"></option><option value="中壢"></option><option value="新竹"></option><option value="竹南"></option><option value="苗栗"></option><option value="豐原"></option><option value="台中"></option><option value="新烏日"></option><option value="彰化"></option><option value="員林"></option><option value="斗六"></option><option value="嘉義"></option><option value="台南"></option><option value="新營"></option><option value="善化"></option><option value="永康"></option><option value="岡山"></option><option value="新左營"></option><option value="高雄"></option><option value="鳳山"></option><option value="屏東"></option><option value="潮州"></option><option value="宜蘭"></option><option value="羅東"></option><option value="花蓮"></option><option value="台東"></option>
+  </datalist>
+
 
   <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
   <script>
@@ -306,18 +292,24 @@
     const $ = (id)=>document.getElementById(id);
     function showError(msg){ const e=$('error'); e.textContent=msg; e.style.display='block'; }
 
-    // —— A 條款同意（本地保存）
-    const CONSENT_KEY = 'giger_consent_v2';
-    function hasConsent(){ try{ const raw=localStorage.getItem(CONSENT_KEY); return raw && JSON.parse(raw).agreed; }catch{ return false; } }
-    function setConsent(){ localStorage.setItem(CONSENT_KEY, JSON.stringify({agreed:true, ts:Date.now()})); }
+    // —— 條款同意 (A)
+    const CONSENT_KEY_A = 'giger_consent_a_v2';
+    function hasConsentA(){ try{ const raw=localStorage.getItem(CONSENT_KEY_A); return raw && JSON.parse(raw).agreed; }catch{ return false; } }
+    function setConsentA(){ localStorage.setItem(CONSENT_KEY_A, JSON.stringify({agreed:true, ts:Date.now()})); }
+
+    // —— 條款同意 (B) (新)
+    const CONSENT_KEY_B = 'giger_consent_b_v1';
+    function hasConsentB(){ try{ const raw=localStorage.getItem(CONSENT_KEY_B); return raw && JSON.parse(raw).agreed; }catch{ return false; } }
+    function setConsentB(){ localStorage.setItem(CONSENT_KEY_B, JSON.stringify({agreed:true, ts:Date.now()})); }
+    
     function show(id, on=true){ const el=$(id); if(el) el.style.display=on?'block':'none'; }
 
-    // —— 站點資料
+    // —— (A) 站點資料：捷運/高捷/高鐵（同前） + 台鐵依縣市分組
     const STOP_DATA = {
       "台北捷運": {
         "淡水信義線 (R)": ["象山","台北101/世貿","信義安和","大安","大安森林公園","東門","中正紀念堂","台大醫院","台北車站","中山","雙連","民權西路","圓山","劍潭","士林","芝山","明德","石牌","唭哩岸","奇岩","北投","復興崗","忠義","關渡","竹圍","紅樹林","淡水"],
         "松山新店線 (G)": ["新店","新店區公所","七張","小碧潭","大坪林","景美","萬隆","公館","台電大樓","古亭","中正紀念堂","小南門","西門","北門","中山","松江南京","南京復興","台北小巨蛋","南京三民","松山"],
-        "中和新蘆線 (O)": ["南勢角","景安","永安市場","頂溪","古亭","東門","忠孝新生","松江南京","行天宮","中山國小","民權西路","大橋頭","台北橋","菜寮","三重","先嗇宮","頭前庄","新莊","輔大","丹鳳","迴龍","三重國小","三和國中","徐匯中學","三民高中","蘆洲"],
+        "中和新蘆線 (O)": ["南勢角","景安","永安市場","頂溪","古亭","東門","忠孝新生","松江南京","行天宮","中山國O","民權西路","大橋頭","台北橋","菜寮","三重","先嗇宮","頭前庄","新莊","輔大","丹鳳","迴龍","三重國小","三和國中","徐匯中學","三民高中","蘆洲"],
         "板南線 (BL)": ["頂埔","永寧","土城","海山","亞東醫院","府中","板橋","新埔","江子翠","龍山寺","西門","台北車站","善導寺","忠孝新生","忠孝復興","忠孝敦化","國父紀念館","市政府","永春","後山埤","昆陽","南港","南港展覽館"],
         "文湖線 (BR)": ["動物園","木柵","萬芳社區","萬芳醫院","辛亥","麟光","六張犁","科技大樓","大安","忠孝復興","南京復興","中山國中","松山機場","大直","劍南路","西湖","港墘","文德","內湖","大湖公園","葫洲","東湖","南港軟體園區","南港展覽館"],
         "環狀線 (Y)": ["新北產業園區","幸福","新北輔大","頭前庄","中原","橋和","中和","景平","景安","中和高中","秀朗橋"]
@@ -326,8 +318,7 @@
         "紅線": ["小港","高雄國際機場","草衙","前鎮高中","凱旋","獅甲","三多商圈","中央公園","美麗島","高雄車站","後驛","凹子底","巨蛋","生態園區","左營","世運"],
         "橘線": ["西子灣","鹽埕埔","市議會","美麗島","信義國小","文化中心","五塊厝","技擊館","衛武營","鳳山西","鳳山","大東","鳳山國中","大寮"]
       },
-      "高鐵": { "全線": ["南港","台北","板橋","桃園","新竹","苗栗","台中","彰化","雲林","嘉義","台南","左營"] },
-
+      "高鐵": { "全線": ["南港","台北","板橋","桃園","新竹","苗栗","台中","彰化","雲林","嘉義","台 nutty","左營"] },
       "台鐵（依縣市）": {
         "基隆市": ["基隆","三坑","八堵","七堵","百福","暖暖"],
         "新北市": ["汐止","汐科","五堵","四腳亭","瑞芳","猴硐","三貂嶺","牡丹","雙溪","貢寮","福隆","石城","大里","大溪","龜山","海科館","八斗子"],
@@ -349,11 +340,21 @@
         "花蓮縣": ["東澳","南澳","和平","和仁","崇德","新城","景美","北埔","花蓮","吉安","志學","平和","壽豐","豐田","林榮新光","南平","鳳林","萬榮","光復","大富","富源","瑞穗","三民","玉里","東里","東竹"],
         "台東縣": ["富里","池上","關山","月美","鹿野","山里","台東","知本","太麻里","金崙","瀧溪","大武"]
       },
-
       "其他": {}
     };
 
-    // —— A/B/C 共用：站點三層下拉與地點摘要
+    // —— (B) 縣市鄉鎮資料 (新)
+    const DISTRICT_DATA = {
+      "基隆市": ["仁愛區", "信義區", "中正區", "中山區", "安樂區", "暖暖區", "七堵區"],
+      "台北市": ["中正區", "大同區", "中山區", "松山區", "大安區", "萬華區", "信義區", "士林區", "北投區", "內湖區", "南港區", "文山區"],
+      "新北市": ["板橋區", "三重區", "中和區", "永和區", "新莊區", "新店區", "樹林區", "鶯歌區", "三峽區", "淡水區", "汐止區", "瑞芳區", "土城區", "蘆洲區", "五股區", "泰山區", "林口區", "深坑區", "石碇區", "坪林區", "三芝區", "石門區", "八里區", "平溪區", "雙溪區", "貢寮區", "金山區", "萬里區", "烏來區"],
+      "台南市": ["中西區", "東區", "南區", "北區", "安平區", "安南區", "永康區", "歸仁區", "新化區", "左鎮區", "玉井區", "楠西區", "南化區", "仁德區", "關廟區", "龍崎區", "官田區", "麻豆區", "佳里區", "西港區", "七股區", "將軍區", "學甲區", "北門區", "新營區", "後壁區", "白河區", "東山區", "六甲區", "下營區", "柳營區", "鹽水區", "善化區", "大內區", "山上區", "新市區", "安定區"],
+      "高雄市": ["新興區", "前金區", "苓雅區", "鹽埕區", "鼓山區", "旗津區", "前鎮區", "三民區", "楠梓區", "小港區", "左營區", "仁武區", "大社區", "岡山區", "路竹區", "阿蓮區", "田寮區", "燕巢區", "橋頭區", "梓官區", "彌陀區", "永安區", "湖內區", "鳳山區", "大寮區", "林園區", "鳥松區", "大樹區", "旗山區", "美濃區", "六龜區", "內門區", "杉林區", "甲仙區", "桃源區", "那瑪夏區", "茂林區", "茄萣區"]
+      // ... 可自行擴充全台灣資料
+    };
+
+
+    // —— (A) 初始化三層下拉
     function initStationSelectors(prefix){
       const sysSel = $(prefix+'System');
       const lineSel = $(prefix+'Line');
@@ -395,12 +396,13 @@
       return {system:sys,line,station,detail:extra,text};
     }
 
-    // —— A 用：15 分粒度時間下拉（今天）
+    // —— (A) 時間下拉：從現在起每 15 分到當日 23:45
     function fillTimeSelect(sel, withASAP=false){
       const now=new Date();
       const end=new Date(); end.setHours(23,45,0,0);
       const opts=[];
       if(withASAP){ opts.push({v:'ASAP', t:'盡快（30 分鐘內）'}); }
+      // 從下一個 15 分刻度開始
       const start=new Date(now);
       const m=now.getMinutes();
       const add= (15 - (m % 15)) % 15;
@@ -414,116 +416,12 @@
       opts.forEach(o=>{ const opt=document.createElement('option'); opt.value=o.v; opt.textContent=o.t; sel.appendChild(opt); });
     }
 
-    // —— 運費預覽（A）
+    // —— (A) 運費預覽
     function setupFarePreview(){
       const base=$('baseFare'), tip=$('tip'), out=$('farePreview');
       function calc(){ const t=(parseInt(base.value,10)||0)+(parseInt(tip.value,10)||0); out.textContent=t; }
       tip.addEventListener('input', calc); calc();
     }
-
-    // ======== B 的「通勤路線」動態元件（最多 3 組） ========
-    const MAX_ROUTES = 3;
-    const TRANS_TYPES = ["台鐵","高鐵","台北捷運","高雄捷運","其他"];
-
-    function stationsByType(type){
-      if(type==="其他") return [];
-      if(type==="台鐵"){
-        const out=new Set(); const tai = STOP_DATA["台鐵（依縣市）"];
-        Object.keys(tai).forEach(k=> tai[k].forEach(s=>out.add(s)));
-        return [...out];
-      }
-      if(type==="高鐵") return STOP_DATA["高鐵"]["全線"];
-      if(type==="台北捷運"){ const t=STOP_DATA["台北捷運"]; return Object.keys(t).flatMap(l=>t[l]); }
-      if(type==="高雄捷運"){ const t=STOP_DATA["高雄捷運"]; return Object.keys(t).flatMap(l=>t[l]); }
-      return [];
-    }
-
-    function renderRouteRow(idx){
-      const wrap=document.createElement('div');
-      wrap.className='card'; wrap.style.marginTop='8px';
-      wrap.innerHTML=`
-        <div class="grid g2">
-          <label>交通工具
-            <select class="r_type">${TRANS_TYPES.map(t=>`<option value="${t}">${t}</option>`).join('')}</select>
-          </label>
-          <label class="r_other_wrap" style="display:none">請填交通工具
-            <input class="r_other">
-          </label>
-        </div>
-        <div class="grid g2">
-          <label>起站
-            <input class="r_from" list="dl_from_${idx}" placeholder="輸入關鍵字篩選">
-            <datalist id="dl_from_${idx}"></datalist>
-          </label>
-          <label>終站
-            <input class="r_to" list="dl_to_${idx}" placeholder="輸入關鍵字篩選">
-            <datalist id="dl_to_${idx}"></datalist>
-          </label>
-        </div>
-        <button type="button" class="r_del" style="border-color:#c00;color:#c00">移除這條路線</button>
-      `;
-      return wrap;
-    }
-
-    function initRoutesUI(){
-      const list = document.getElementById('routes');
-      const btn  = document.getElementById('btnAddRoute');
-
-      const addRow = ()=>{
-        const idx=list.children.length+1;
-        if(idx>MAX_ROUTES){ alert('最多 3 條路線'); return; }
-        const row=renderRouteRow(idx);
-        list.appendChild(row);
-
-        const typeSel   = row.querySelector('.r_type');
-        const otherWrap = row.querySelector('.r_other_wrap');
-        const dlFrom    = row.querySelector(`#dl_from_${idx}`);
-        const dlTo      = row.querySelector(`#dl_to_${idx}`);
-
-        const refresh = ()=>{
-          const tp = typeSel.value;
-          otherWrap.style.display = (tp==="其他") ? 'block' : 'none';
-          const names = stationsByType(tp);
-          dlFrom.innerHTML=''; dlTo.innerHTML='';
-          names.forEach(s=>{ const a=document.createElement('option'); a.value=s; dlFrom.appendChild(a);
-                             const b=document.createElement('option'); b.value=s; dlTo.appendChild(b); });
-        };
-        typeSel.addEventListener('change', refresh);
-        refresh();
-
-        row.querySelector('.r_del').addEventListener('click', ()=> row.remove());
-      };
-
-      btn.addEventListener('click', addRow);
-      addRow(); // 預設一條
-    }
-
-    // —— B：30 分粒度時間（00:00~23:30）
-    function buildTimeOptions(sel, prefill){ 
-      sel.innerHTML=''; 
-      for(let h=0; h<24; h++){
-        for(let m=0; m<60; m+=30){
-          const v = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
-          const opt=document.createElement('option'); opt.value=v; opt.textContent=v; sel.appendChild(opt);
-        }
-      }
-      if (prefill) sel.value = prefill;
-    }
-
-    // —— 讀檔轉 base64（B 上傳存摺）
-    function fileToBase64(file){
-      return new Promise((resolve,reject)=>{
-        const r = new FileReader();
-        r.onload = ()=> resolve(String(r.result));
-        r.onerror = reject;
-        r.readAsDataURL(file);
-      });
-    }
-
-    // —— B 條款同意（本地保存）
-    const B_CONSENT_KEY = 'giger_b_consent_v1';
-    const hasBConsent = ()=> !!JSON.parse(localStorage.getItem(B_CONSENT_KEY)||'false');
-    const setBConsent  = ()=> localStorage.setItem(B_CONSENT_KEY,'true');
 
     // —— LIFF 主流程
     let currentProfile=null, role=null, orderId=null;
@@ -532,7 +430,10 @@
       const params=new URLSearchParams(location.search);
       role=params.get('role')||'A';
       orderId=params.get('orderId')||null;
-      if(params.get('resetConsent')==='1') localStorage.removeItem(CONSENT_KEY);
+      if(params.get('resetConsent')==='1') {
+        localStorage.removeItem(CONSENT_KEY_A);
+        localStorage.removeItem(CONSENT_KEY_B);
+      }
 
       await liff.init({ liffId: LIFF_ID });
       if(!liff.isLoggedIn()){ liff.login(); return; }
@@ -544,8 +445,8 @@
       else if(role==='C'){ initRoleC(); }
     }
 
-    // —— A：同意頁 → 表單
     function initRoleA(){
+      // 先決定顯示「同意頁」或「表單」
       const goForm = ()=>{
         show('roleAConsent', false);
         show('roleA', true);
@@ -553,8 +454,8 @@
 
         initStationSelectors('from'); initStationSelectors('to');
         setupFarePreview();
-        fillTimeSelect($('pickupTime'), true);
-        fillTimeSelect($('deliveryTime'), false);
+        fillTimeSelect($('pickupTime'), true);    // 交貨：含「盡快」
+        fillTimeSelect($('deliveryTime'), false);// 期望送達：只列時間
 
         const form=$('formA');
         form.addEventListener('submit', async (e)=>{
@@ -568,16 +469,26 @@
             action:'registerOrderFromA',
             oaUserId: currentProfile.userId,
             name: currentProfile.displayName,
+
+            // 物品與地點
             itemDesc: fd.get('itemDesc'),
             fromStation: from.text,
             toStation: to.text,
             fromSystem: from.system, fromLine: from.line, fromStationName: from.station, fromDetail: from.detail,
             toSystem: to.system, toLine: to.line, toStationName: to.station, toDetail: to.detail,
-            pickupTime: $('pickupTime').value,
-            deliveryTime: $('deliveryTime').value,
+
+            // 時間（新）
+            pickupTime: $('pickupTime').value,      // 'ASAP' 或 'HH:MM'
+            deliveryTime: $('deliveryTime').value,  // 'HH:MM'
+
+            // 收貨人
             receiverTitle: fd.get('receiverTitle'),
             receiverPhone: fd.get('receiverPhone'),
+
+            // 運費
             farePayer: payer, baseFare, tip, totalFare: baseFare+tip,
+
+            // 條款已同意
             agreed: true
           };
 
@@ -605,135 +516,295 @@
         function refresh(){ btn.disabled = !(c1.checked && c2.checked && c3.checked); }
         [c1,c2,c3].forEach(x=>x.addEventListener('change', refresh)); refresh();
 
-        btn.addEventListener('click', ()=>{ setConsent(); goForm(); });
+        btn.addEventListener('click', ()=>{ setConsentA(); goForm(); });
         $('btnConsentCancel').addEventListener('click', ()=>{
           if(liff?.closeWindow) liff.closeWindow(); else location.href='https://line.me/R/';
         });
       };
 
-      if(hasConsent()) goForm(); else goConsent();
+      if(hasConsentA()) goForm(); else goConsent();
     }
 
-    // —— B：同意頁 → 表單（30 分粒度，OTP 示意，上傳存摺、路線最多 3 條）
+    // === (B) 角色：全新函式 ===
+    
+    // (B) 唯一的 route ID 計數器
+    let routeCounter = 0;
+
+    // (B) 新增一筆「交通方式」到指定的路線區塊
+    function addNewTransportMethod(container, routeId) {
+      const methodCount = container.querySelectorAll('.transport-method-entry').length;
+      if (methodCount >= 3) {
+        alert('最多只能新增 3 種轉乘方式');
+        return;
+      }
+      
+      const methodId = `${routeId}_method${methodCount}`;
+      const div = document.createElement('div');
+      div.className = 'transport-method-entry';
+      div.innerHTML = `
+        <div class="grid" style="grid-template-columns: 2fr 1fr;">
+          <label>方式 ${methodCount + 1}
+            <select name="${methodId}_type" class="transport-type-select">
+              <option value="">請選擇交通</option>
+              <option value="tra">台鐵</option>
+              <option value="thsrc">高鐵</option>
+              <option value="trtc">台北捷運</option>
+              <option value="krtc">高雄捷運</option>
+              <option value="other">其他</option>
+            </select>
+          </label>
+          <button type="button" class="linkBtn remove-method-btn" style="align-self:end; color:#c00">移除</button>
+        </div>
+        <div class="grid g2" style="display:none;" data-input-for="tra thsrc trtc krtc">
+          <label>起站
+            <input name="${methodId}_start" list="" placeholder="輸入站名">
+          </label>
+          <label>終站
+            <input name="${methodId}_end" list="" placeholder="輸入站名">
+          </label>
+        </div>
+        <div style="display:none;" data-input-for="other">
+          <label>請說明交通工具與路線
+            <input name="${methodId}_other_desc" placeholder="例：機車 / 100 號公車">
+          </label>
+        </div>
+      `;
+      container.appendChild(div);
+
+      // 幫 select 加上事件
+      const sel = div.querySelector('.transport-type-select');
+      sel.addEventListener('change', (e) => {
+        const type = e.target.value;
+        const startInput = div.querySelector(`input[name="${methodId}_start"]`);
+        const endInput = div.querySelector(`input[name="${methodId}_end"]`);
+        
+        // 決定 datalist
+        let listId = '';
+        if (type === 'tra') listId = 'stations_tra';
+        else if (type === 'thsrc') listId = 'stations_thsrc';
+        else if (type === 'trtc') listId = 'stations_trtc';
+        else if (type === 'krtc') listId = 'stations_krtc';
+
+        if(startInput) startInput.setAttribute('list', listId);
+        if(endInput) endInput.setAttribute('list', listId);
+        
+        // 顯示/隱藏對應的欄位
+        div.querySelectorAll('[data-input-for]').forEach(el => {
+          const show = el.getAttribute('data-input-for').split(' ').includes(type);
+          el.style.display = show ? (el.tagName === 'DIV' ? 'block' : 'grid') : 'none';
+        });
+      });
+
+      // 幫「移除」按鈕加上事件
+      div.querySelector('.remove-method-btn').addEventListener('click', () => {
+        div.remove();
+        // 重新編號 (可選)
+      });
+    }
+
+    // (B) 填入鄉鎮下拉
+    function populateTownships(citySelect, townshipSelect) {
+      const city = citySelect.value;
+      const towns = DISTRICT_DATA[city] || [];
+      townshipSelect.innerHTML = '<option value="">請選擇鄉鎮</option>';
+      towns.forEach(town => {
+        const o = document.createElement('option');
+        o.value = town; o.textContent = town;
+        townshipSelect.appendChild(o);
+      });
+    }
+
+    // (B) 新增一個「通勤路線」區塊
+    function addNewCommuteRoute() {
+      routeCounter++;
+      const routeId = `route${routeCounter}`;
+      const div = document.createElement('div');
+      div.className = 'commute-route-block';
+      div.setAttribute('data-route-id', routeId);
+      
+      const today = new Date().toISOString().split('T')[0];
+
+      div.innerHTML = `
+        <div class="grid" style="grid-template-columns: 1fr auto;">
+          <h4 style="margin:0">路線 ${routeCounter}</h4>
+          <button type="button" class="linkBtn remove-route-btn" style="color:#c00">移除此路線</button>
+        </div>
+        
+        <div class="grid g3">
+          <label>日期
+            <input type="date" name="${routeId}_date" value="${today}">
+          </label>
+          <label>開始時間
+            <input type="time" name="${routeId}_startTime" value="08:00">
+          </label>
+          <label>結束時間
+            <input type="time" name="${routeId}_endTime" value="18:00">
+          </label>
+        </div>
+        
+        <label style="margin-top:12px; margin-bottom:4px; font-weight:bold;">重複 (可選，選了日期將失效)</label>
+        <div class="weekday-selector">
+          ${['日','一','二','三','四','五','六'].map((day, i) => `
+            <label>
+              <input type="checkbox" name="${routeId}_repeat" value="${i}">
+              <span>${day}</span>
+            </label>
+          `).join('')}
+        </div>
+        
+        <label style="margin-top:12px; font-weight:bold;">可接單區域 (縣市 / 鄉鎮)</label>
+        <div class="grid g2">
+          <label>縣市
+            <select name="${routeId}_city" class="city-select">
+              <option value="">請選擇縣市</option>
+              ${Object.keys(DISTRICT_DATA).map(city => `<option value="${city}">${city}</option>`).join('')}
+            </select>
+          </label>
+          <label>鄉鎮
+            <select name="${routeId}_town" class="township-select">
+              <option value="">請先選縣市</option>
+            </select>
+          </label>
+        </div>
+
+        <label style="margin-top:12px; font-weight:bold;">通勤交通方式 (最多 3 種)</label>
+        <div class="transport-methods-container" data-route-id="${routeId}">
+          </div>
+        <button type="button" class="smallBtn add-method-btn" style="margin-top:8px;">+ 新增轉乘方式</button>
+      `;
+      
+      $('commuteRoutesContainer').appendChild(div);
+      
+      // 綁定事件
+      const citySelect = div.querySelector('.city-select');
+      const townshipSelect = div.querySelector('.township-select');
+      citySelect.addEventListener('change', () => populateTownships(citySelect, townshipSelect));
+
+      div.querySelector('.add-method-btn').addEventListener('click', (e) => {
+        addNewTransportMethod(div.querySelector('.transport-methods-container'), routeId);
+      });
+      
+      div.querySelector('.remove-route-btn').addEventListener('click', () => {
+        if(confirm('確定要移除此路線嗎？')) {
+          div.remove();
+        }
+      });
+      
+      // 自動新增第一個交通方式
+      addNewTransportMethod(div.querySelector('.transport-methods-container'), routeId);
+    }
+
+
     function initRoleB(){
-      const goForm = ()=>{
+      show('roleB', true);
+      $('bName').textContent = currentProfile.displayName;
+
+      const goForm = () => {
         show('roleBConsent', false);
-        show('roleB', true);
-        $('bName').textContent = currentProfile.displayName;
+        show('formB', true);
+        
+        // 綁定「新增路線」按鈕
+        $('addRouteBtn').addEventListener('click', addNewCommuteRoute);
+        
+        // 預設載入一條路線
+        if ($('commuteRoutesContainer').childElementCount === 0) {
+          addNewCommuteRoute();
+        }
 
-        // 日期預填（yyyy/mm/dd）
-        const d = $('b_date');
-        const today = new Date();
-        const y = today.getFullYear(), m = String(today.getMonth()+1).padStart(2,'0'), dd = String(today.getDate()).padStart(2,'0');
-        d.value = `${y}/${m}/${dd}`;
-
-        // 30 分粒度：填滿選單並預設
-        const now = new Date();
-        const startM = now.getMinutes();
-        const add = (30 - (startM % 30)) % 30;
-        const start = new Date(now); start.setMinutes(startM + (add===0?30:add), 0, 0);
-        const end   = new Date(start.getTime() + 60*60000);
-
-        const selStart = $('b_time_start');
-        const selEnd   = $('b_time_end');
-        buildTimeOptions(selStart,
-          `${String(start.getHours()).padStart(2,'0')}:${String(start.getMinutes()).padStart(2,'0')}`);
-        buildTimeOptions(selEnd,
-          `${String(end.getHours()).padStart(2,'0')}:${String(end.getMinutes()).padStart(2,'0')}`);
-
-        // 重複：custom 才顯示
-        const rep = $('b_repeat');
-        const customBox = $('customRepeat');
-        rep.addEventListener('change', ()=> customBox.style.display = (rep.value==='custom' ? 'block':'none') );
-
-        // 路線 UI
-        initRoutesUI();
-
-        // OTP 示意
-        let phoneVerified = false;
-        $('btnSendOtp').addEventListener('click', ()=>{
-          const p = $('b_phone').value.trim();
-          if(!p){ alert('請先輸入手機'); return; }
-          $('otpStatus').textContent = '已送出（示意）';
-        });
-        $('btnVerifyOtp').addEventListener('click', ()=>{
-          const code = $('otpCode').value.trim();
-          if(code.length<4){ alert('請輸入驗證碼'); return; }
-          phoneVerified = true;
-          $('otpStatus').textContent = '驗證通過（示意）';
-        });
-
-        // 送出
-        $('formB').addEventListener('submit', async (e)=>{
+        // 綁定 B 表單提交
+        $('formB').addEventListener('submit', async (e) => {
           e.preventDefault();
+          const fd = new FormData(e.target);
+          
+          const kycData = {
+            name: fd.get('name'),
+            phone: fd.get('phone'),
+            bankAccount: fd.get('bankAccount'),
+            nameMatch: fd.get('nameMatch') === 'on'
+          };
+          
+          if (!kycData.nameMatch) {
+            alert('請勾選「確認銀行帳戶戶名與真實姓名相同」');
+            return;
+          }
 
-          // 存摺封面（可選）
-          let bankbookBase64 = '';
-          const f = $('bankbookFile').files?.[0];
-          if(f) bankbookBase64 = await fileToBase64(f);
-
-          // 路線
+          // 序列化動態路線
           const routes = [];
-          document.querySelectorAll('#routes > .card').forEach(row=>{
-            const type = row.querySelector('.r_type').value;
-            const other = row.querySelector('.r_other')?.value || '';
-            const from = row.querySelector('.r_from').value.trim();
-            const to   = row.querySelector('.r_to').value.trim();
-            if(from && to) routes.push({ type, other, from, to });
+          document.querySelectorAll('.commute-route-block').forEach(routeEl => {
+            const routeId = routeEl.getAttribute('data-route-id');
+            const routeData = {
+              date: fd.get(`${routeId}_date`),
+              startTime: fd.get(`${routeId}_startTime`),
+              endTime: fd.get(`${routeId}_endTime`),
+              repeat: fd.getAll(`${routeId}_repeat`), // 取得所有勾選的星期
+              city: fd.get(`${routeId}_city`),
+              town: fd.get(`${routeId}_town`),
+              methods: []
+            };
+
+            routeEl.querySelectorAll('.transport-method-entry').forEach((methodEl, i) => {
+              const methodId = `${routeId}_method${i}`; // 注意：這裡的 i 是 0-based index，但
+              // 為了簡單起見，我們假設 name 是動態綁定的...
+              // 重新思考：我們應該直接用 querySelector 抓
+              const type = methodEl.querySelector('.transport-type-select').value;
+              let methodData = { type };
+
+              if (type === 'other') {
+                methodData.description = methodEl.querySelector(`input[name*="_other_desc"]`).value;
+              } else if (type) {
+                methodData.startStation = methodEl.querySelector(`input[name*="_start"]`).value;
+                methodData.endStation = methodEl.querySelector(`input[name*="_end"]`).value;
+              }
+              routeData.methods.push(methodData);
+            });
+            routes.push(routeData);
           });
+          
+          if (routes.length === 0 || routes[0].methods.length === 0) {
+            alert('請至少設定一條通勤路線並包含至少一種交通方式');
+            return;
+          }
 
           const payload = {
             action: 'registerBUser',
             oaUserId: currentProfile.userId,
-            name: document.querySelector('#formB [name="name"]').value.trim(),
-            phone: $('b_phone').value.trim(),
-            bankAccount: document.querySelector('#formB [name="bankAccount"]').value.trim(),
-            bankbookImageBase64: bankbookBase64,
-            date: $('b_date').value.trim(),           // yyyy/mm/dd
-            timeStart: selStart.value,
-            timeEnd:   selEnd.value,
-            repeat: rep.value,
-            repeatCustom: {
-              interval: Number($('r_interval')?.value || 1),
-              unit: $('r_unit')?.value || 'week',
-              weekdays: Array.from(document.querySelectorAll('.r_w:checked')).map(x=>Number(x.value)),
-              until: $('r_until')?.value || '',
-              count: $('r_count')?.value || ''
-            },
-            routes,
-            agree: true,
-            phoneVerified
+            profileName: currentProfile.displayName,
+            kyc: kycData,
+            commuteRoutes: routes, // 這是包含所有路線的陣列
+            agreed: true
           };
 
+          // console.log("B 註冊 Payload:", JSON.stringify(payload, null, 2));
+          // alert('請看 console');
+          // return; // 暫停，先不送出
+
           try{
-            const res = await fetch(BACKEND_URL,{
-              method:'POST', headers:{'Content-Type':'application/json'},
-              body: JSON.stringify(payload)
-            });
+            const res = await fetch(BACKEND_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
             const json = await res.json();
             if(json.status!=='success') throw new Error(json.message || 'failed');
             $('bResult').style.display='block';
+            $('formB').style.display='none';
           }catch(err){ showError('送出失敗：'+err.message); }
         });
       };
 
-      const goConsent = ()=>{
-        show('roleB', false); show('roleBConsent', true);
-        const chk = $('b_consent_chk');
-        const btn = $('btnBConsentAgree');
-        const refresh = ()=> btn.disabled = !chk.checked;
-        chk.addEventListener('change', refresh); refresh();
+      const goConsent = () => {
+        show('formB', false);
+        show('roleBConsent', true);
+        const c1=$('b_consent_chk1'), c2=$('b_consent_chk2'), c3=$('b_consent_chk3'), btn=$('btnBConsentAgree');
+        function refresh(){ btn.disabled = !(c1.checked && c2.checked && c3.checked); }
+        [c1,c2,c3].forEach(x=>x.addEventListener('change', refresh)); refresh();
 
-        btn.addEventListener('click', ()=>{ setBConsent(); goForm(); });
+        btn.addEventListener('click', ()=>{ setConsentB(); goForm(); });
         $('btnBConsentCancel').addEventListener('click', ()=>{
           if(liff?.closeWindow) liff.closeWindow(); else location.href='https://line.me/R/';
         });
       };
-
-      if(hasBConsent()) goForm(); else goConsent();
+      
+      // B 的註冊流程：檢查 B 的同意
+      if(hasConsentB()) goForm(); else goConsent();
     }
 
-    // —— C：顯示訂單
     async function initRoleC(){
       show('roleC', true);
       $('cName').textContent=currentProfile.displayName;
@@ -753,7 +824,6 @@
       }catch(err){ showError('載入訂單失敗：'+err.message); }
     }
 
-    // —— 啟動
     main().catch(err=>{ $('loading').style.display='none'; showError('初始化失敗：'+err.message); });
   </script>
 </body>
