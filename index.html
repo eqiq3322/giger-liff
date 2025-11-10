@@ -11,6 +11,10 @@
     label{display:block;margin:8px 0}
     input,select,textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid var(--bd);border-radius:10px}
     input[type="file"]{padding:5px}
+    /* 點 3：讓 radio button 跟文字並排 */
+    input[type="radio"], input[type="checkbox"]{width:auto}
+    .radio-label{display:inline-block; margin:0 10px 0 2px; font-weight:normal;}
+
     button{padding:10px 14px;border-radius:10px;border:1px solid #999;background:#fff;cursor:pointer}
     button[disabled]{opacity:.5;cursor:not-allowed}
     button.smallBtn{padding:4px 8px;font-size:0.9em}
@@ -28,10 +32,12 @@
     .commute-route-block{border:2px solid #007bff;border-radius:10px;padding:10px;margin-top:12px;background:#f8faff}
     .transport-method-entry{border-top:1px dashed #ccc;padding-top:12px;margin-top:12px}
     .weekday-selector{display:flex;gap:4px;justify-content:space-around;margin-top:8px}
-    .weekday-selector label{border:1px solid var(--bd);border-radius:50%;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+    .weekday-selector label{border:1px solid var(--bd);border-radius:50%;width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer; margin: 0;}
     .weekday-selector input[type="checkbox"]{display:none}
     .weekday-selector input[type="checkbox"]:checked + span{background:#007bff;color:#fff;border-color:#007bff;border-radius:50%}
-    /* 新增：Google Calendar 週期設定 */
+    /* 點 3：鎖定的 checkbox */
+    .weekday-selector input[type="checkbox"]:disabled + span{background:#ccc;color:#888;border-color:#ccc;cursor:not-allowed;}
+
     .repetition-controls {border: 1px solid #e0e0e0; border-radius: 8px; padding: 10px; margin-top: 8px;}
     .custom-repeat-options { display: none; background: #fafafa; padding: 10px; border-radius: 6px; margin-top: 10px; }
   </style>
@@ -204,12 +210,10 @@
       <label>銀行帳號（用於收款）
         <input name="bankAccount" placeholder="例：822 (中信) 1234567890" required>
       </label>
-      
       <label>銀行帳戶照片 (存摺封面)
         <input type="file" name="bankPhoto" accept="image/*" required>
         <small>請上傳包含「戶名」與「帳號」的清晰照片。</small>
       </label>
-
       <label><input type="checkbox" name="nameMatch" required> 我確認此銀行帳戶戶名與上述真實姓名相同。</label>
 
       <hr style="border:0; border-top:1px solid var(--bd); margin:20px 0">
@@ -258,13 +262,23 @@
     function setConsentB(){ localStorage.setItem(CONSENT_KEY_B, JSON.stringify({agreed:true, ts:Date.now()})); }
     
     function show(id, on=true){ const el=$(id); if(el) el.style.display = on ? 'block' : 'none'; }
+
+    // 點 1：新增日期格式化
+    function getTodayYYYYMMDD(slash = '/') {
+        const d = new Date();
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}${slash}${m}${slash}${day}`;
+    }
+
     // —— (A/B 共用) 站點資料
     const STOP_DATA = {
       "台北捷運": {
         "淡水信義線 (R)": ["象山","台北101/世貿","信義安和","大安","大安森林公園","東門","中正紀念堂","台大醫院","台北車站","中山","雙連","民權西路","圓山","劍潭","士林","芝山","明德","石牌","唭哩岸","奇岩","北投","復興崗","忠義","關渡","竹圍","紅樹林","淡水"],
         "松山新店線 (G)": ["新店","新店區公所","七張","小碧潭","大坪林","景美","萬隆","公館","台電大樓","古亭","中正紀念堂","小南門","西門","北門","中山","松江南京","南京復興","台北小巨蛋","南京三民","松山"],
         "中和新蘆線 (O)": ["南勢角","景安","永安市場","頂溪","古亭","東門","忠孝新生","松江南京","行天宮","中山國小","民權西路","大橋頭","台北橋","菜寮","三重","先嗇宮","頭前庄","新莊","輔大","丹鳳","迴龍","三重國小","三和國中","徐匯中學","三民高中","蘆洲"],
-        "板南線 (BL)": ["頂埔","永寧","土城","海山","亞東醫院","府中","板橋","新埔","江子翠","龍山寺","西門","台北車站","善導寺","忠孝新生","忠孝復興","忠孝敦化","國父紀念館","市政府","永春","後山埤","昆陽","南港","南港展覽館"],
+        "板南線 (BL)": ["頂埔","永寧","土城","海山","亞東醫院","府中","板橋","新埔","江子翠","龍山寺","西門","台北車站","善導寺","忠孝新生","忠孝復興","忠孝敦化","國父紀念館","市政府","永春","後山埤","昆陽","南港","南港覽館"],
         "文湖線 (BR)": ["動物園","木柵","萬芳社區","萬芳醫院","辛亥","麟光","六張犁","科技大樓","大安","忠孝復興","南京復興","中山國中","松山機場","大直","劍南路","西湖","港墘","文德","內湖","大湖公園","葫洲","東湖","南港軟體園區","南港展覽館"],
         "環狀線 (Y)": ["新北產業園區","幸福","新北輔大","頭前庄","中原","橋和","中和","景平","景安","中和高中","秀朗橋"]
       },
@@ -292,21 +306,18 @@
         "屏東縣": ["九曲堂","六塊厝","屏東","歸來","麟洛","西勢","竹田","潮州","崁頂","南州","鎮安","林邊","佳冬","枋寮","加祿","內獅","枋山"],
         "宜蘭縣": ["頭城","頂埔","礁溪","四城","宜蘭","二結","羅東","冬山","新馬","蘇澳新","蘇澳"],
         "花蓮縣": ["東澳","南澳","和平","和仁","崇德","新城","景美","北埔","花蓮","吉安","志學","平和","壽豐","豐田","林榮新光","南平","鳳林","萬榮","光復","大富","富源","瑞穗","三民","玉里","東里","東竹"],
-        // *** 這裡是錯誤點 ***
-        // 舊的錯誤： ISO"台東縣": [...]
-        // 已修正：
         "台東縣": ["富里","池上","關山","月美","鹿野","山里","台東","知本","太麻里","金崙","瀧溪","大武"]
       },
-      "其他": {} // A 表單需要 '其他'，B 不需要
+      "其他": {} // A 表單需要 '其他'
     };
 
-    // —— (A/B 共用) 初始化三層下拉 (已重構，可接受 prefix)
+    // —— (A/B 共用) 初始化三層下拉
     function initStationSelectors(prefix){
       const sysSel = $(prefix+'System');
       const lineSel = $(prefix+'Line');
       const staSel = $(prefix+'Station');
 
-      if (!sysSel || !lineSel || !staSel) return; // 防呆
+      if (!sysSel || !lineSel || !staSel) return; 
 
       sysSel.innerHTML = '';
       Object.keys(STOP_DATA).forEach(sys=>{
@@ -387,7 +398,7 @@
       await liff.init({ liffId: LIFF_ID });
       if(!liff.isLoggedIn()){ liff.login(); return; }
       currentProfile = await liff.getProfile();
-      $('loading').style.display='none';
+      $('loading').style.display='none'; 
       if(role==='A'){ initRoleA(); }
       else if(role==='B'){ initRoleB(); }
       else if(role==='C'){ initRoleC(); }
@@ -398,20 +409,14 @@
         show('roleAConsent', false); show('roleA', true);
         $('aName').textContent = currentProfile.displayName;
 
-        initStationSelectors('from'); initStationSelectors('to'); // 使用 A 的靜態 ID
+        initStationSelectors('from'); initStationSelectors('to'); // A 不變
         setupFarePreview();
         fillTimeSelect($('pickupTime'), true);
         fillTimeSelect($('deliveryTime'), false);
 
         const form=$('formA');
-        form.addEventListener('submit', async (e)=>{
-          e.preventDefault();
-          const from=getPlaceSummary('from'), to=getPlaceSummary('to');
-          // ... (A 表單提交邏輯，未修改) ...
-        });
-        $('copyBtn').addEventListener('click', async ()=>{
-          // ... (A 複製邏輯，未修改) ...
-        });
+        form.addEventListener('submit', async (e)=>{ /* ... A 提交邏輯 ... */ });
+        $('copyBtn').addEventListener('click', async ()=>{ /* ... A 複製邏輯 ... */ });
       };
       const goConsent = ()=>{
         show('roleA', false); show('roleAConsent', true);
@@ -426,11 +431,69 @@
       if(hasConsentA()) goForm(); else goConsent();
     }
 
-    // === (B) 角色：全新函式 ===
+    // === (B) 角色：函式 ===
     
     let routeCounter = 0; // B 路線的唯一 ID 計數器
 
-    // (B) 點 3：新增一個「通勤路線」區塊 (全新重構)
+    // 點 2 & 3：新的輔助函式，用於動態更新週期選項
+    function updateRepetitionOptions(dateInput, repeatSelect, weekdaySelector) {
+        const dateStr = dateInput.value;
+        // 驗證 YYYY/MM/DD 格式
+        if (!/^\d{4}\/\d{2}\/\d{2}$/.test(dateStr)) return; 
+        
+        const date = new Date(dateStr.replace(/\//g, '-')); // 替換為 ISO 格式避免瀏覽器差異
+        if (isNaN(date.getTime())) return; // 無效日期
+
+        const dayOfWeek = date.getDay(); // 0=Sun, 1=Mon, ..., 6=Sat
+        const dayNames = ['日', '一', '二', '三', '四', '五', '六'];
+        
+        // --- 1. 更新週期下拉選單 (點 2) ---
+        const currentValue = repeatSelect.value;
+        repeatSelect.innerHTML = ''; // 清空選項
+        
+        // 基本選項
+        repeatSelect.add(new Option('不重複', 'none'));
+        repeatSelect.add(new Option('每天', 'daily'));
+        repeatSelect.add(new Option(`每週 (星期${dayNames[dayOfWeek]})`, 'weekly'));
+
+        // 動態選項
+        const isWeekday = (dayOfWeek > 0 && dayOfWeek < 6);
+        const isWeekend = (dayOfWeek === 0 || dayOfWeek === 6);
+        if (isWeekday) {
+            repeatSelect.add(new Option('平日 (星期一至五)', 'weekdays'));
+        }
+        if (isWeekend) {
+            repeatSelect.add(new Option('週末 (星期六日)', 'weekends'));
+        }
+        
+        repeatSelect.add(new Option('自訂...', 'custom'));
+        
+        // 盡可能恢復之前的選項
+        if (repeatSelect.querySelector(`option[value="${currentValue}"]`)) {
+            repeatSelect.value = currentValue;
+        } else {
+            repeatSelect.value = 'none';
+        }
+
+        // --- 2. 更新並鎖定自訂星期 (點 3) ---
+        const checkboxes = weekdaySelector.querySelectorAll('input[type="checkbox"]');
+        checkboxes.forEach((chk, index) => {
+            // 先重置
+            chk.disabled = false;
+            // 只有在自訂選單中，才預選
+            if (repeatSelect.value !== 'custom') {
+                 chk.checked = false;
+            }
+            
+            // 鎖定選定的日期
+            if (index === dayOfWeek) {
+                chk.checked = true;
+                chk.disabled = true;
+            }
+        });
+    }
+
+    // (B) 新增一個「通勤路線」區塊
     function addNewCommuteRoute() {
       routeCounter++;
       const routeId = `route${routeCounter}`;
@@ -438,7 +501,8 @@
       div.className = 'commute-route-block';
       div.setAttribute('data-route-id', routeId);
       
-      const today = new Date().toISOString().split('T')[0];
+      // 點 1：使用新的日期格式
+      const todayStr = getTodayYYYYMMDD('/');
 
       div.innerHTML = `
         <div class="grid" style="grid-template-columns: 1fr auto;">
@@ -448,23 +512,25 @@
         
         <div class="repetition-controls">
           <div class="grid g3">
-            <label>日期 <input type="date" name="${routeId}_date" value="${today}"> </label>
+            <label>日期 <input type="text" class="route-date-input" name="${routeId}_date" value="${todayStr}" placeholder="YYYY/MM/DD"> </label>
             <label>開始時間 <input type="time" name="${routeId}_startTime" value="08:00"> </label>
             <label>結束時間 <input type="time" name="${routeId}_endTime" value="18:00"> </label>
           </div>
           <label>週期
             <select name="${routeId}_repeatType" class="repeat-type-select">
               <option value="none">不重複</option>
-              <option value="daily">每天</option>
-              <option value="weekly">每週 (於星期${new Date(today).toLocaleDateString('zh-TW', { weekday: 'short' })})</option>
-              <option value="weekdays">平日 (星期一至五)</option>
-              <option value="custom">自訂...</option>
             </select>
           </label>
           <div class="custom-repeat-options">
             <div class="grid g2">
               <label>重複間隔 <input type="number" name="${routeId}_customInterval" value="1" min="1"> </label>
-              <label>單位 <select name="${routeId}_customUnit" disabled><option value="week">週</option></select> </label>
+              <label>單位
+                <select name="${routeId}_customUnit">
+                  <option value="day">天</option>
+                  <option value="week">週</option>
+                  <option value="month">月</option>
+                </select>
+              </label>
             </div>
             <label>重複日期：</label>
             <div class="weekday-selector">
@@ -474,6 +540,16 @@
                   <span>${day}</span>
                 </label>
               `).join('')}
+            </div>
+            <label style="margin-top:12px">結束時間：</label>
+            <div>
+              <input type="radio" id="${routeId}_end_never" name="${routeId}_endType" value="never" checked> <label for="${routeId}_end_never" class="radio-label">持續不停</label>
+              <input type="radio" id="${routeId}_end_on" name="${routeId}_endType" value="on"> <label for="${routeId}_end_on" class="radio-label">於</label>
+              <input type="radio" id="${routeId}_end_after" name="${routeId}_endType" value="after"> <label for="${routeId}_end_after" class="radio-label">重複</label>
+            </div>
+            <div class="custom-end-options" style="margin-top: 8px;">
+              <input type="text" name="${routeId}_endDate" placeholder="YYYY/MM/DD" value="${getTodayYYYYMMDD('/')}" style="display:none;">
+              <input type="number" name="${routeId}_endOccurrences" min="1" value="13" style="display:none;">
             </div>
           </div>
         </div>
@@ -493,20 +569,20 @@
           <div class="transport-dropdowns" style="display:none; background: #fff; padding: 10px; border-radius: 8px;">
             <fieldset class="fromWrap" style="border:none; padding: 5px;">
               <legend><b>起點</b></legend>
+              <select id="${routeId}_start_System" style="display: none;"></select>
               <div class="grid g2">
-                <label>系統 <select id="${routeId}_start_System"></select></label>
                 <label>路線 <select id="${routeId}_start_Line"></select></label>
+                <label>站點 <select id="${routeId}_start_Station"></select></label>
               </div>
-              <label>站點 <select id="${routeId}_start_Station"></select></label>
             </fieldset>
             
             <fieldset class="toWrap" style="border:none; padding: 5px;">
               <legend><b>終點</b></legend>
+              <select id="${routeId}_end_System" style="display: none;"></select>
               <div class="grid g2">
-                <label>系統 <select id="${routeId}_end_System"></select></label>
                 <label>路線 <select id="${routeId}_end_Line"></select></label>
+                <label>站點 <select id="${routeId}_end_Station"></select></label>
               </div>
-              <label>站點 <select id="${routeId}_end_Station"></select></label>
             </fieldset>
           </div>
 
@@ -524,14 +600,42 @@
       
       // === 綁定新建立的 DOM 事件 ===
       
-      // 1. G-Calendar 週期
+      // 1. G-Calendar 週期 (點 2 & 3)
+      const dateInput = div.querySelector('.route-date-input');
       const repeatSelect = div.querySelector('.repeat-type-select');
       const customOptions = div.querySelector('.custom-repeat-options');
-      repeatSelect.addEventListener('change', () => {
-        customOptions.style.display = (repeatSelect.value === 'custom') ? 'block' : 'none';
+      const weekdaySelector = div.querySelector('.weekday-selector');
+      
+      // 第一次載入時，立即更新
+      updateRepetitionOptions(dateInput, repeatSelect, weekdaySelector); 
+      
+      // 監聽日期變化
+      dateInput.addEventListener('change', () => {
+          updateRepetitionOptions(dateInput, repeatSelect, weekdaySelector);
       });
 
-      // 2. 交通方式 (仿 A)
+      // 監聽週期下拉選單
+      repeatSelect.addEventListener('change', () => {
+          customOptions.style.display = (repeatSelect.value === 'custom') ? 'block' : 'none';
+          // 如果切換到自訂，重新鎖定星期
+          if (repeatSelect.value === 'custom') {
+              updateRepetitionOptions(dateInput, repeatSelect, weekdaySelector);
+          }
+      });
+
+      // 2. 自訂結束時間 (點 3)
+      const endRadios = div.querySelectorAll(`input[name="${routeId}_endType"]`);
+      const endDateInput = div.querySelector(`input[name="${routeId}_endDate"]`);
+      const endOccurrencesInput = div.querySelector(`input[name="${routeId}_endOccurrences"]`);
+      
+      endRadios.forEach(radio => {
+          radio.addEventListener('change', () => {
+              endDateInput.style.display = (radio.value === 'on') ? 'block' : 'none';
+              endOccurrencesInput.style.display = (radio.value === 'after') ? 'block' : 'none';
+          });
+      });
+
+      // 3. 交通方式 (邏輯同前，點 4 的 HTML 修改已完成)
       const transportSelect = div.querySelector('.transport-type-select');
       const dropdownContainer = div.querySelector('.transport-dropdowns');
       const otherContainer = div.querySelector('.transport-other');
@@ -548,26 +652,18 @@
           dropdownContainer.style.display = 'block';
           otherContainer.style.display = 'none';
 
-          // **核心**：動態初始化 A 角色的下拉選單
-          // 我們只在第一次選擇時初始化
           if (!$(startPrefix + 'System')._initialized) {
             initStationSelectors(startPrefix);
             initStationSelectors(endPrefix);
             $(startPrefix + 'System')._initialized = true;
           }
           
-          // 強制設定 System 下拉選單的值
           $(startPrefix + 'System').value = type;
           $(endPrefix + 'System').value = type;
-          
-          // 觸發 change 事件來載入正確的路線
           $(startPrefix + 'System').dispatchEvent(new Event('change'));
           $(endPrefix + 'System').dispatchEvent(new Event('change'));
           
-          // 如果是高鐵（全線），系統選單應被鎖定
-          const disabled = (type === '高鐵');
-          $(startPrefix + 'System').disabled = disabled;
-          $(endPrefix + 'System').disabled = disabled;
+          // 注意：高鐵的 System select 現在是 hidden，所以 disable 它沒意義
           
         } else {
           dropdownContainer.style.display = 'none';
@@ -575,7 +671,7 @@
         }
       });
 
-      // 3. 移除按鈕
+      // 4. 移除按鈕
       div.querySelector('.remove-route-btn').addEventListener('click', () => {
         if(confirm('確定要移除此路線嗎？')) {
           div.remove();
@@ -602,26 +698,23 @@
         $('formB').addEventListener('submit', async (e) => {
           e.preventDefault();
           
-          // **注意：真實的表單提交**
-          // 因為檔案上傳(照片)，我們必須使用 FormData，而不是 JSON
-          // 這會**重大改變**後端 (Google Apps Script) 接收資料的方式
           const form = e.target;
           const formData = new FormData(form);
           
-          // 必須手動附加 LIFF User ID 和 action
           formData.append('action', 'registerBUser');
           formData.append('oaUserId', currentProfile.userId);
           formData.append('profileName', currentProfile.displayName);
           formData.append('agreed', true);
           
-          // 序列化動態路線（這部分 JSON.stringify 後附加到 FormData）
+          // 序列化動態路線
           const routes = [];
-          document.querySelectorAll('.commute-route-block').forEach((routeEl, index) => {
-            const routeId = routeEl.getAttribute('data-route-id'); // `route${index+1}`
+          document.querySelectorAll('.commute-route-block').forEach((routeEl) => {
+            const routeId = routeEl.getAttribute('data-route-id');
             
-            // 從 FormData 讀取靜態名稱的資料
             const repeatType = formData.get(`${routeId}_repeatType`);
             const transportType = formData.get(`${routeId}_transportType`);
+            // 點 3：讀取結束時間
+            const endType = formData.get(`${routeId}_endType`); 
             
             const routeData = {
               date: formData.get(`${routeId}_date`),
@@ -630,18 +723,25 @@
               repeat: {
                 type: repeatType,
                 customInterval: (repeatType === 'custom') ? formData.get(`${routeId}_customInterval`) : null,
-                customDays: (repeatType === 'custom') ? formData.getAll(`${routeId}_customDays`) : []
+                // 點 3：讀取自訂單位
+                customUnit: (repeatType === 'custom') ? formData.get(`${routeId}_customUnit`) : null,
+                customDays: (repeatType === 'custom') ? formData.getAll(`${routeId}_customDays`) : [],
+                // 點 3：讀取結束時間
+                end: {
+                  type: endType,
+                  date: (endType === 'on') ? formData.get(`${routeId}_endDate`) : null,
+                  occurrences: (endType === 'after') ? formData.get(`${routeId}_endOccurrences`) : null
+                }
               },
               transport: {
                 type: transportType,
-                // 下拉選單 (仿A)
+                // 點 4：JS 仍然從隱藏的 select 讀取 system
                 start_system: (transportType !== 'other' && $(`${routeId}_start_System`)) ? $(`${routeId}_start_System`).value : null,
                 start_line: (transportType !== 'other' && $(`${routeId}_start_Line`)) ? $(`${routeId}_start_Line`).value : null,
                 start_station: (transportType !== 'other' && $(`${routeId}_start_Station`)) ? $(`${routeId}_start_Station`).value : null,
                 end_system: (transportType !== 'other' && $(`${routeId}_end_System`)) ? $(`${routeId}_end_System`).value : null,
                 end_line: (transportType !== 'other' && $(`${routeId}_end_Line`)) ? $(`${routeId}_end_Line`).value : null,
                 end_station: (transportType !== 'other' && $(`${routeId}_end_Station`)) ? $(`${routeId}_end_Station`).value : null,
-                // 其他
                 other_vehicle: (transportType === 'other') ? formData.get(`${routeId}_other_vehicle`) : null,
                 other_start: (transportType === 'other') ? formData.get(`${routeId}_other_start`) : null,
                 other_end: (transportType === 'other') ? formData.get(`${routeId}_other_end`) : null,
@@ -649,30 +749,29 @@
             };
             routes.push(routeData);
             
-            // **移除**動態欄位，避免重複提交
-            // (這只是為了 FormData 的 "乾淨"，後端 GAS 也需要調整)
+            // 從 formData 移除動態欄位 (避免干擾)
             formData.delete(`${routeId}_date`);
             formData.delete(`${routeId}_startTime`);
             formData.delete(`${routeId}_endTime`);
             formData.delete(`${routeId}_repeatType`);
             formData.delete(`${routeId}_customInterval`);
+            formData.delete(`${routeId}_customUnit`);
             formData.getAll(`${routeId}_customDays`).forEach(() => formData.delete(`${routeId}_customDays`));
+            formData.delete(`${routeId}_endType`);
+            formData.delete(`${routeId}_endDate`);
+            formData.delete(`${routeId}_endOccurrences`);
             formData.delete(`${routeId}_transportType`);
             formData.delete(`${routeId}_other_vehicle`);
             formData.delete(`${routeId}_other_start`);
             formData.delete(`${routeId}_other_end`);
           });
           
-          // 將動態的 JSON 數據作為一個字串附加到 FormData
           formData.append('commuteRoutes_json', JSON.stringify(routes));
 
           try{
-            // **重要**：不再使用 JSON，而是直接傳送 FormData
-            // headers 必須移除 'Content-Type': 'application/json'，瀏覽器會自動設定
             const res = await fetch(BACKEND_URL, {
               method:'POST', 
               body: formData 
-              // NO headers!
             });
             
             const json = await res.json();
@@ -690,14 +789,15 @@
         function refresh(){ btn.disabled = !(c1.checked && c2.checked && c3.checked); }
         [c1,c2,c3].forEach(x=>x.addEventListener('change', refresh)); refresh();
         btn.addEventListener('click', ()=>{ setConsentB(); goForm(); });
-        $('btnBConsentCancel').addEventListener('click', ()=>{
+        $('btnConsentCancel').addEventListener('click', ()=>{
           if(liff?.closeWindow) liff.closeWindow(); else location.href='https://line.me/R/';
         });
       };
       
       if(hasConsentB()) goForm(); else goConsent();
     }
-async function initRoleC(){
+
+    async function initRoleC(){
       show('roleC', true);
       $('cName').textContent=currentProfile.displayName;
       if(!orderId){ showError('缺少 orderId'); return; }
@@ -715,6 +815,7 @@ async function initRoleC(){
           <p>備註：${o.note||''}</p>`;
       }catch(err){ showError('載入訂單失敗：'+err.message); }
     }
+
     main().catch(err=>{ $('loading').style.display='none'; showError('初始化失敗：'+err.message); });
   </script>
 </body>
